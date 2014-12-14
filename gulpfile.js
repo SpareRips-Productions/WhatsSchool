@@ -7,11 +7,18 @@ var minifyCss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var sh = require('shelljs');
 
+var uglify = require('gulp-uglify');
+var sourcemaps = require('gulp-sourcemaps');
+var ngAnnotate = require('gulp-ng-annotate');
+var jshint = require('gulp-jshint');
+var scsslint = require('gulp-scss-lint');
+
 var paths = {
-  sass: ['./scss/**/*.scss']
+  sass: ['./scss/**/*.scss'],
+  scripts: './scripts/**/*.js'
 };
 
-gulp.task('default', ['sass']);
+gulp.task('default', ['lint:sass', 'sass', 'lint:js', 'js']);
 
 gulp.task('sass', function(done) {
   gulp.src('./scss/ionic.app.scss')
@@ -25,8 +32,34 @@ gulp.task('sass', function(done) {
     .on('end', done);
 });
 
+gulp.task('lint:js', function(){
+  gulp.src([paths.scripts])
+        .pipe(jshint('.jshintrc'))
+        .pipe(jshint.reporter('jshint-stylish'));
+});
+
+gulp.task('lint:sass', function(){
+  gulp.src(paths.sass)
+        .pipe(scsslint());
+});
+
+gulp.task('lint', ['lint:js', 'lint:sass']);
+
+gulp.task('js', function() {
+  gulp.src(['./scripts/**/*.module.js', paths.scripts])
+        .pipe(sourcemaps.init())
+        .pipe(concat('app.js'))
+        .pipe(ngAnnotate())
+        .pipe(gulp.dest('www/js'))
+        .pipe(uglify())
+        .pipe(rename({suffix: '.min'}))
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest('www/js'))
+});
+
 gulp.task('watch', function() {
   gulp.watch(paths.sass, ['sass']);
+  gulp.watch(paths.scripts, ['js']);
 });
 
 gulp.task('install', ['git-check'], function() {
