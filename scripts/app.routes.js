@@ -13,16 +13,46 @@
 					url: '/groups',
 					views: {
 						'tab-groups': {
-							templateUrl: 'templates/tabs/groups.html'
+							templateUrl: 'templates/group/list.html',
+							controller: 'GroupListCtrl as ctrl'
 						}
 					}
 					
+				})
+				.state('tabs.groups-announcement', {
+					url: '/groups/:groupId/announcement/:announcementId',
+					views: {
+						'tab-groups': {
+							templateUrl: 'templates/announcement/detail.html',
+							controller: 'AnnouncementDetailCtrl as ctrl'
+						}
+					}
+					
+				})
+				.state('tabs.groups-detail', {
+					url: '/groups/:id',
+					views: {
+						'tab-groups': {
+							templateUrl: 'templates/group/detail.html',
+							controller: 'GroupDetailCtrl as ctrl'
+						}
+					}
+					
+				})
+				.state('tabs.groups-members', {
+					url: '/groups/:id/members',
+					views: {
+						'tab-groups': {
+							templateUrl: 'templates/user/groupUsers.html',
+							controller: 'GroupMembersCtrl as ctrl'
+						}
+					}
 				})
 				.state('tabs.contacts', {
 					url: '/contacts',
 					views: {
 						'tab-contacts': {
-							templateUrl: 'templates/tabs/contacts.html'
+							templateUrl: 'templates/user/list.html'
 						}
 					}
 					
@@ -31,7 +61,7 @@
 					url: '/settings',
 					views: {
 						'tab-settings': {
-							templateUrl: 'templates/tabs/settings.html'
+							templateUrl: 'templates/settings.html'
 						}
 					}
 				})

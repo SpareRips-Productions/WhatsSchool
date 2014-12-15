@@ -1,0 +1,32 @@
+<ion-view title="{{ ctrl.group.name }}">
+  <ion-content>
+  	<ion-list>
+  		<ion-item>
+  			<h2>{{ ctrl.group.name }}</h2>
+  			<p>Owner: {{ctrl.group.owner }}</p>
+  		</ion-item>
+  		<ion-item href="#/tabs/groups/{{ctrl.group.id}}/members">
+  			<h3>{{ ctrl.members.length }} Members</h3>
+  			<p>{{ ctrl.getMemberNames().join(', ') }}</p>
+  		</ion-item>
+  		<ion-item class="item-divider">
+  			Anouncements
+  		</ion-item>
+  		<ion-item class="item-input-inset">
+  			<label class="item-input-wrapper">
+      			<input type="text" placeholder="Filter Announcements" ng-model="ctrl.announcementSearch">
+    		</label>
+  		</ion-item>
+  		<ion-item class="item-icon-left" ng-repeat="announcement in ctrl.announcements | filter:ctrl.announcementSearch" href="#/tabs/groups/{{ctrl.group.id}}/announcement/{{announcement.id}}">
+  			 <i class="icon {{ announcement.logo }}"></i>
+  			 {{ announcement.name }}
+  		</ion-item>
+  	</ion-list>
+  	<button class="button button-full button-calm">
+  		Add Announcement
+	</button>
+  	<button class="button button-full button-assertive">
+  		Delete Group
+	</button>
+  </ion-content>
+</ion-view>

@@ -47,9 +47,9 @@ gulp.task('lint', ['lint:js', 'lint:sass']);
 
 gulp.task('js', function() {
   gulp.src(['./scripts/**/*.module.js', paths.scripts])
+        .pipe(ngAnnotate())
         .pipe(sourcemaps.init())
         .pipe(concat('app.js'))
-        .pipe(ngAnnotate())
         .pipe(gulp.dest('www/js'))
         .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
