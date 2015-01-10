@@ -7003,6 +7003,12 @@ a.button {
   background-image: none;
   border-bottom-width: 0; }
 
+.keyboard-open .tabs {
+  display: none !important; }
+
+.keyboard-open .has-tabs {
+  bottom: 0 !important; }
+
 .welcome {
   color: #fff;
   background-size: cover, cover;
@@ -7034,7 +7040,39 @@ a.button {
     border: 0; }
     .announcement .chat .list .item .chat-message {
       min-height: 40px;
-      background: #fff; }
+      background: #fff;
+      font-size: 14px;
+      white-space: normal;
+      padding: 5px;
+      position: relative; }
+      .announcement .chat .list .item .chat-message:before {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 10px;
+        left: -10px;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent;
+        border-right: 10px solid #fff; }
+      .announcement .chat .list .item .chat-message .user {
+        font-weight: 700;
+        color: #886aea;
+        font-size: 12px; }
+    .announcement .chat .list .item.current-user {
+      padding-right: 72px;
+      padding-left: 16px; }
+      .announcement .chat .list .item.current-user img:first-child {
+        left: auto;
+        right: 16px; }
+      .announcement .chat .list .item.current-user .chat-message:before {
+        left: auto;
+        right: -10px;
+        border-right: none;
+        border-left: 10px solid #fff; }
+      .announcement .chat .list .item.current-user .chat-message .user {
+        color: #33cd5f; }
+  .announcement .bar-footer form {
+    width: 100%; }
 
 .login .logo, .register .logo {
   display: block;

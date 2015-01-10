@@ -6,12 +6,25 @@
         {{ ctrl.announcement.description }}
     </div>
     <ion-list class="chat">
-        <ion-item ng-repeat="comment in ctrl.announcement.comments" class="item-avatar">
+        <ion-item ng-repeat="comment in ctrl.announcement.comments" class="item-avatar" ng-class="{'current-user': ctrl.isCurrentUserComment(comment)}">
             <img gravatar-src="'{{comment.user.email}}'" />
             <div class="chat-message">
-            {{comment.content}}
+              <span class="user">{{comment.user.firstName}} {{comment.user.lastName}}</span>
+              <div class="message">
+                {{comment.content}}
+              </div>
             </div>
         </ion-item>
     </ion-list>
   </ion-content>
+  <ion-footer-bar align-title="left" keyboard-attach class="bar-light">
+    <form ng-submit="ctrl.sendNewComment()" class="item-input-inset">
+      <label class="item-input-wrapper">
+          <input ng-model="ctrl.newComment" type="text" placeholder="Your Comment">
+      </label> 
+      <button class="button button-clear button-positive" type="submit">
+        <strong>Send</strong>
+      </button>
+    </form>
+  </ion-footer-bar>
 </ion-view>

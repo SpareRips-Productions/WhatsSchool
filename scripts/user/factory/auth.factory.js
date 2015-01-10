@@ -13,6 +13,7 @@
                     var user;
                     if(credentials.username === 'thomas') {
                         user = {
+                            id: 4,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -23,6 +24,7 @@
                         deferred.resolve(user);
                     } else if(credentials.username === 'admin') {
                         user = {
+                            id: 5,
                             firstName: 'Administratore', 
                             lastName: 'Admin', 
                             username: 'admin',
@@ -46,7 +48,7 @@
             }
 
             authService.logout = function(){
-                $ionicHistory.clearCache()
+                //$ionicHistory.clearCache()
                 return UserSession.destroy();
             };
 
@@ -58,8 +60,7 @@
                 if (!angular.isArray(authorizedRoles)) {
                   authorizedRoles = [authorizedRoles];
                 }
-                return (authService.isAuthenticated() && 
-                    (authorizedRoles.indexOf(UserSession.getUser().role) !== -1 || authorizedRoles.indexOf(USER_ROLES.all) !== -1));
+                return (authService.isAuthenticated() && authorizedRoles.indexOf(UserSession.getUser().role) !== -1);
             };
 
             return authService;

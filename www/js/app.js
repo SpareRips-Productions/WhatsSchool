@@ -2,21 +2,21 @@
 
 'use strict';
 
-angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.group', 'ws.announcement', 'ws.user', 'ws.settings'])
+angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravatar', 'ws.group', 'ws.announcement', 'ws.user', 'ws.settings'])
     .config(["$ionicConfigProvider", function($ionicConfigProvider) {
       $ionicConfigProvider.platform.android.backButton.icon('ion-ios7-arrow-back');
-      console.log($ionicConfigProvider.platform.android.tabs.style());
     }])
-    .run(["$ionicPlatform", function($ionicPlatform) {
+    .run(["$ionicPlatform", "$cordovaStatusbar", function($ionicPlatform, $cordovaStatusbar) {
           $ionicPlatform.ready(function() {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
             if(window.cordova && window.cordova.plugins.Keyboard) {
               cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+              cordova.plugins.Keyboard.disableScroll(true);
             }
             if(window.StatusBar) {
               // org.apache.cordova.statusbar required
-              StatusBar.styleDefault();
+              $cordovaStatusbar.styleColor('white');
             }
         });
     }]);
@@ -25,7 +25,7 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
 (function(){
     'use strict';
 
-    angular.module('ws.announcement', ['ionic']);
+    angular.module('ws.announcement', ['ionic', 'ws.user']);
 })();
 (function() {
     'use strict';
@@ -52,7 +52,7 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
                     abstract: true,
                     templateUrl: 'templates/tabs.html',
                     data: {
-                        authorizedRoles: [USER_ROLES.all]
+                        authorizedRoles: [USER_ROLES.student, USER_ROLES.admin]
                     }
                 })
                 .state('tabs.groups', {
@@ -119,7 +119,10 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
                 })
             ;
             
-            $urlRouterProvider.otherwise('/welcome');
+            $urlRouterProvider.otherwise( function($injector, $location) {
+                var $state = $injector.get("$state");
+                $state.go("welcome");
+            });
         }]);
 })();
 (function(){
@@ -164,10 +167,13 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
     'use strict';
 
     angular.module('ws.announcement')
-        .controller('AnnouncementDetailCtrl', ["$stateParams", "GroupService", "AnnouncementService", function($stateParams, GroupService, AnnouncementService){
+        .controller('AnnouncementDetailCtrl', ["$stateParams", "$ionicScrollDelegate", "GroupService", "AnnouncementService", "UserSession", function($stateParams, $ionicScrollDelegate, GroupService, AnnouncementService, UserSession){
             var vm = this;
             this.announcement = {};
             this.group = {};
+
+            this.newComment = "";
+            var user = UserSession.getUser();
 
             _reload();
 
@@ -177,84 +183,23 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
                 });
                 AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
                     vm.announcement = announcement;
+                    $ionicScrollDelegate.scrollBottom();
                 });
             }
 
+            this.isCurrentUserComment = function(comment) {
+                return comment.user.id === user.id;
+            }
 
-        }]);
-})();
-(function(){
-    'use strict';
+            this.sendNewComment = function() {
+                var comment = {user: user, content: this.newComment};
+                if(this.announcement.comments) {
+                    this.announcement.comments.push(comment);
+                    this.newComment = "";
+                }
+                $ionicScrollDelegate.scrollBottom();
+            }
 
-    angular.module('ws.announcement')
-        .factory('AnnouncementService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
-            return {
-                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById
-            };
-
-            var user = UserSession.user;
-
-            function getAnnouncementsByGroupId(groupId) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var announcements = [
-                        {
-                            id: 1,
-                            logo: 'ion-calendar',
-                            name: 'Announcement 1'
-                        },
-                        {
-                            id: 2,
-                            logo: 'ion-clock',
-                            name: 'Announcement 2'
-                        },
-                        {
-                            id: 3,
-                            logo: 'ion-coffee',
-                            name: 'Announcement 3'
-                        }
-                    ];
-                    deferred.resolve(announcements);
-                }, 1000);
-                return deferred.promise;
-            };
-
-            function getAnnouncementById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var announcement ={
-                        id: 1,
-                        groupId: 1,
-                        logo: 'ion-calendar',
-                        name: 'Announcement 1',
-                        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
-                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
-                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
-                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
-                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                        comments: [
-                            {
-                                content: 'Cool',
-                                user: { id: 1, name: 'John Doe'}
-                            },
-                            {
-                                content: 'Awesome!!!',
-                                user: { id: 1, name: 'John Doe'}
-                            }, 
-                            {
-                                content: 'Super',
-                                user: { id: 1, name: 'John Doe'}
-                            }  
-                        ]            
-                    };
-
-                    deferred.resolve(announcement);    
-                }, 1000);
-                return deferred.promise;
-            };
         }]);
 })();
 (function(){
@@ -412,6 +357,92 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
 (function(){
     'use strict';
 
+    angular.module('ws.announcement')
+        .factory('AnnouncementService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
+            return {
+                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
+                getAnnouncementById: getAnnouncementById
+            };
+
+            var user = UserSession.user;
+
+            function getAnnouncementsByGroupId(groupId) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var announcements = [
+                        {
+                            id: 1,
+                            logo: 'ion-calendar',
+                            name: 'Announcement 1'
+                        },
+                        {
+                            id: 2,
+                            logo: 'ion-clock',
+                            name: 'Announcement 2'
+                        },
+                        {
+                            id: 3,
+                            logo: 'ion-coffee',
+                            name: 'Announcement 3'
+                        }
+                    ];
+                    deferred.resolve(announcements);
+                }, 1000);
+                return deferred.promise;
+            };
+
+            function getAnnouncementById(id) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var announcement ={
+                        id: 1,
+                        groupId: 1,
+                        logo: 'ion-calendar',
+                        name: 'Announcement 1',
+                        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
+                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
+                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
+                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
+                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+                        comments: [
+                            {
+                                content: 'Cool',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            },
+                            {
+                                content: 'Awesome!!!',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            }, 
+                            {
+                                content: 'Super',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            },                        
+                            {
+                                content: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
+                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
+                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
+                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
+                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            },
+                            {
+                                content: 'Shiiit!',
+                                user: { id: 4, firstName: 'Thomas', lastName: 'Hampe'}
+                            },     
+                        ]            
+                    };
+
+                    deferred.resolve(announcement);    
+                }, 1000);
+                return deferred.promise;
+            };
+        }]);
+})();
+(function(){
+    'use strict';
+
     angular.module('ws.settings')
         .controller('SettingsCtrl', ["$state", "Auth", "UserSession", function($state, Auth, UserSession){
             this.logout = function() {
@@ -443,174 +474,6 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
             teacher:    'teacher',
             student:    'student',
         });
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.user')
-        .factory('Auth', ["$http", "$q", "$timeout", "$ionicHistory", "UserSession", "USER_ROLES", function ($http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
-            var authService = {};
-
-            authService.login = function (credentials) {
-                //TODO: Implement Login Api
-                var deferred = $q.defer();
-
-                $timeout(function(){
-                    var user;
-                    if(credentials.username === 'thomas') {
-                        user = {
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        };
-                        UserSession.create(user);
-                        deferred.resolve(user);
-                    } else if(credentials.username === 'admin') {
-                        user = {
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        };
-                        UserSession.create(user);
-                        deferred.resolve(user);
-                    } else {
-                        deferred.reject({ message: 'Username or Password invalid' });
-                    }
-                }, 300);
-
-                return deferred.promise;
-            };
-
-            authService.register = function(credentials) {
-                var deferred = $q.defer();
-                //TODO: Login API
-                return this.login(credentials);
-            }
-
-            authService.logout = function(){
-                $ionicHistory.clearCache()
-                return UserSession.destroy();
-            };
-
-            authService.isAuthenticated = function () {
-                return !!UserSession.getUser().username;
-            };
-
-            authService.isAuthorized = function (authorizedRoles) {
-                if (!angular.isArray(authorizedRoles)) {
-                  authorizedRoles = [authorizedRoles];
-                }
-                return (authService.isAuthenticated() && 
-                    (authorizedRoles.indexOf(UserSession.getUser().role) !== -1 || authorizedRoles.indexOf(USER_ROLES.all) !== -1));
-            };
-
-            return authService;
-        }]);
-})();
-(function(){
-    'use strict';
-
-     angular.module('ws.group')
-        .factory('UserService', ["$q", "$timeout", "UserSession", "USER_ROLES", function($q, $timeout, UserSession, USER_ROLES){
-            return {
-                getUsers: getUsers,
-                getUsersByGroupId: getUsersByGroupId,
-                getUserById: getUserById
-            };
-
-            var user = UserSession.user;
-
-            function getUsers() {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var users = [
-                        {
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        }
-                    ];
-                    deferred.resolve(users);
-                }, 1000);
-                return deferred.promise;
-            };
-
-            function getUsersByGroupId(groupId) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var users = [
-                        {
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        }
-                    ];
-                    deferred.resolve(users);
-                }, 1000);
-                return deferred.promise;
-            };
-
-            function getUserById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var user = {
-                        firstName: 'Thomas', 
-                        lastName: 'Hampe',     
-                        username: 'thomas',
-                        email: 'thomas@hampe.co', 
-                        role: USER_ROLES.student
-                    };
-
-                    deferred.resolve(user);    
-                }, 1000);
-                return deferred.promise;
-            };
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.user')
-        .service('UserSession', ["localStorageService", function(localStorageService){
-            var _userProps = ['firstName', 'lastName', 'email', 'username', 'role'];
-            
-            this.getUser = function() {
-                return localStorageService.get('user') || {};
-            };
-
-            this.create = function (user) {
-                localStorageService.set('user', user);
-            };
-            this.destroy = function () {
-                localStorageService.set('user', {});
-            };
-              return this;
-        }]);
 })();
 (function(){
     'use strict';
@@ -737,5 +600,180 @@ angular.module('ws.app', ['ionic', 'LocalStorageModule', 'ui.gravatar', 'ws.grou
             // Execute action
             });
 
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.user')
+        .factory('Auth', ["$http", "$q", "$timeout", "$ionicHistory", "UserSession", "USER_ROLES", function ($http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
+            var authService = {};
+
+            authService.login = function (credentials) {
+                //TODO: Implement Login Api
+                var deferred = $q.defer();
+
+                $timeout(function(){
+                    var user;
+                    if(credentials.username === 'thomas') {
+                        user = {
+                            id: 4,
+                            firstName: 'Thomas', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        };
+                        UserSession.create(user);
+                        deferred.resolve(user);
+                    } else if(credentials.username === 'admin') {
+                        user = {
+                            id: 5,
+                            firstName: 'Administratore', 
+                            lastName: 'Admin', 
+                            username: 'admin',
+                            email: 'admin@hampe.co', 
+                            role: USER_ROLES.admin
+                        };
+                        UserSession.create(user);
+                        deferred.resolve(user);
+                    } else {
+                        deferred.reject({ message: 'Username or Password invalid' });
+                    }
+                }, 300);
+
+                return deferred.promise;
+            };
+
+            authService.register = function(credentials) {
+                var deferred = $q.defer();
+                //TODO: Login API
+                return this.login(credentials);
+            }
+
+            authService.logout = function(){
+                //$ionicHistory.clearCache()
+                return UserSession.destroy();
+            };
+
+            authService.isAuthenticated = function () {
+                return !!UserSession.getUser().username;
+            };
+
+            authService.isAuthorized = function (authorizedRoles) {
+                if (!angular.isArray(authorizedRoles)) {
+                  authorizedRoles = [authorizedRoles];
+                }
+                return (authService.isAuthenticated() && authorizedRoles.indexOf(UserSession.getUser().role) !== -1);
+            };
+
+            return authService;
+        }]);
+})();
+(function(){
+    'use strict';
+
+     angular.module('ws.group')
+        .factory('UserService', ["$q", "$timeout", "UserSession", "USER_ROLES", function($q, $timeout, UserSession, USER_ROLES){
+            return {
+                getUsers: getUsers,
+                getUsersByGroupId: getUsersByGroupId,
+                getUserById: getUserById
+            };
+
+            var user = UserSession.user;
+
+            function getUsers() {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var users = [
+                        {
+                            firstName: 'Thomas', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            firstName: 'Administratore', 
+                            lastName: 'Admin', 
+                            username: 'admin',
+                            email: 'admin@hampe.co', 
+                            role: USER_ROLES.admin
+                        }
+                    ];
+                    deferred.resolve(users);
+                }, 1000);
+                return deferred.promise;
+            };
+
+            function getUsersByGroupId(groupId) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var users = [
+                        {
+                            firstName: 'Thomas', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            firstName: 'Administratore', 
+                            lastName: 'Admin', 
+                            username: 'admin',
+                            email: 'admin@hampe.co', 
+                            role: USER_ROLES.admin
+                        }
+                    ];
+                    deferred.resolve(users);
+                }, 1000);
+                return deferred.promise;
+            };
+
+            function getUserById(id) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var user = {
+                        firstName: 'Thomas', 
+                        lastName: 'Hampe',     
+                        username: 'thomas',
+                        email: 'thomas@hampe.co', 
+                        role: USER_ROLES.student
+                    };
+
+                    deferred.resolve(user);    
+                }, 1000);
+                return deferred.promise;
+            };
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.user')
+        .service('UserSession', ["localStorageService", function(localStorageService){
+            var _userProps = ['firstName', 'lastName', 'email', 'username', 'role'];
+            var user;
+            this.getUser = function() {
+                if(user === undefined) {
+                    user = localStorageService.get('user') || {};
+                }
+                return user;
+            };
+
+            this.create = function (user) {
+                this.destroy();
+                localStorageService.set('user', user);
+                return this.getUser();
+            };
+            this.destroy = function () {
+                user = undefined;
+                localStorageService.set('user', {});
+            };
+            return this;
         }]);
 })();

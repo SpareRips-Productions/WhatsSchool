@@ -9,7 +9,7 @@
                     abstract: true,
                     templateUrl: 'templates/tabs.html',
                     data: {
-                        authorizedRoles: [USER_ROLES.all]
+                        authorizedRoles: [USER_ROLES.student, USER_ROLES.admin]
                     }
                 })
                 .state('tabs.groups', {
@@ -76,6 +76,9 @@
                 })
             ;
             
-            $urlRouterProvider.otherwise('/welcome');
+            $urlRouterProvider.otherwise( function($injector, $location) {
+                var $state = $injector.get("$state");
+                $state.go("welcome");
+            });
         });
 })();

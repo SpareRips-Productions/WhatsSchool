@@ -12,9 +12,52 @@
                 .chat-message {
                     min-height: 40px;
                     background: #fff;
+                    font-size: 14px;
+                    white-space: normal;
+                    padding: 5px;
+                    position: relative;
+                    &:before {
+                        content: "";
+                        display: block;
+                        position: absolute;
+                        top: 10px;
+                        left: -10px;
+                        border-top: 10px solid transparent;
+                        border-bottom: 10px solid transparent;
+                        border-right: 10px solid #fff;
+                    }
+                    .user {
+                        font-weight: 700;
+                        color: $royal;
+                        font-size: 12px;
+                    }
+                }
+                &.current-user {
+                    padding-right: 72px;
+                    padding-left: 16px;
+                    img:first-child {
+                        left: auto;
+                        right: 16px;
+                    }
+                    .chat-message {
+                        &:before {
+                            left: auto;
+                            right: -10px;
+                            border-right: none;
+                            border-left: 10px solid #fff;
+                        }
+                        .user {
+                            color: $balanced;
+                        }
+                    }
                 }
             }
         }
         
+    }
+    .bar-footer {
+        form {
+            width: 100%;
+        }
     }
 }

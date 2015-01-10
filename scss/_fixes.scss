@@ -3,3 +3,11 @@
     background-image: none;
     border-bottom-width: 0;
 }
+
+.keyboard-open .tabs {
+  display:none !important; 
+}
+
+.keyboard-open .has-tabs {
+    bottom:0 !important;
+}
