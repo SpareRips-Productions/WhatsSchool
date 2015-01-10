@@ -1,0 +1,10 @@
+.settings {
+    padding-top: 20px;
+    background-color: $background-gray;
+    .button-logout, .button-logout:hover {
+        color:  $assertive;
+    }
+    .list {
+        margin: 20px 0;
+    }
+}

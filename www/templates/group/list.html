@@ -6,9 +6,10 @@
       			<input type="text" placeholder="Filter Groups" ng-model="ctrl.groupSearch">
     		</label>
   		</ion-item>
-  		<ion-item ng-repeat="group in ctrl.groups | filter: ctrl.groupSearch" href="#/tabs/groups/{{group.id}}">
+  		<ion-item class="item-icon-right" ng-repeat="group in ctrl.groups | filter: ctrl.groupSearch" href="#/tabs/groups/{{group.id}}">
   			<h2>{{ group.name }}</h2>
   			<p>{{group.owner}}</p>
+        <i class="icon dark-gray ion-ios7-arrow-forward"></i>
   		</ion-item>
   	</ion-list>
   </ion-content>

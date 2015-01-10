@@ -1,5 +1,12 @@
-<ion-view title="Settings">
-  <ion-content class="padding">
-
+<ion-view title="Settings" class="settings">
+  <ion-content>
+    <ion-list>
+        <ion-item class="item-avatar">
+            <img gravatar-src="'{{ctrl.user.email}}'" />
+            <h3>{{ctrl.user.firstName}} {{ctrl.user.lastName}}</h3>
+            <p>{{ctrl.user.email}} / @{{ctrl.user.username}}</p>
+        </ion-item>
+    </ion-list>
+    <button class="button button-full button-light button-logout" ng-click="ctrl.logout()">Logout</button>
   </ion-content>
 </ion-view>

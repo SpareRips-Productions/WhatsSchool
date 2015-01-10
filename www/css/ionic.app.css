@@ -7000,5 +7000,49 @@ a.button {
   transition-duration: 0s; }
 
 .platform-android .bar-header {
-  border-bottom-width: 0px;
-  background-image: none; }
+  background-image: none;
+  border-bottom-width: 0; }
+
+.welcome {
+  color: #fff;
+  background-size: cover, cover;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../img/owl.jpg'); }
+  .welcome h1 {
+    color: #fff;
+    text-align: center; }
+  .welcome .footer-buttons {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    left: 0; }
+
+.settings {
+  padding-top: 20px;
+  background-color: #ebebf1; }
+  .settings .button-logout, .settings .button-logout:hover {
+    color: #ef473a; }
+  .settings .list {
+    margin: 20px 0; }
+
+.announcement {
+  background: #ebebf1; }
+  .announcement .info {
+    background: #fff;
+    border-bottom: 1px solid #bbbbc0; }
+  .announcement .chat .list .item {
+    background: none;
+    border: 0; }
+    .announcement .chat .list .item .chat-message {
+      min-height: 40px;
+      background: #fff; }
+
+.login .logo, .register .logo {
+  display: block;
+  margin: 10px auto;
+  width: 64px; }
+
+.dark-gray {
+  color: #bbbbc0; }
+
+.bar .button.button-clear.button-header-done {
+  font-weight: 500; }

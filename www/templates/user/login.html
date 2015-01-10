@@ -1,0 +1,23 @@
+<ion-modal-view ng-controller="LoginCtrl as ctrl" class="login">
+    <ion-header-bar class="bar-positive">
+        <div class="buttons">
+            <button class="button button-clear" ng-click="ctrl.cancel()">Cancel</button>
+        </div>
+        <h1 class="title">{{ctrl.title}}</h1>
+        <div class="buttons">
+            <button class="button button-clear button-header-done" ng-click="ctrl.login()">Login</button>
+        </div>
+    </ion-header-bar>
+    <ion-content>
+        <img src="img/logo.png" alt="WhatsSchool" class="logo" />
+        <form class="list" ng-submit="ctrl.login()">
+            <label class="item item-input">
+                <input type="text" placeholder="Username" ng-model="ctrl.credentials.username">
+            </label>
+            <label class="item item-input">
+                <input type="password" placeholder="Password" ng-model="ctrl.credentials.password">
+            </label>
+            <button class="button button-full button-positive" type="submit">Login</button>
+        </form>
+    </ion-content>
+</ion-modal-view>

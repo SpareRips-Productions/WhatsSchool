@@ -20,8 +20,8 @@ var paths = {
 
 gulp.task('default', ['lint:sass', 'sass', 'lint:js', 'js']);
 
-gulp.task('sass', function(done) {
-  gulp.src('./scss/ionic.app.scss')
+gulp.task('sass', function() {
+  return gulp.src('./scss/ionic.app.scss')
     .pipe(sourcemaps.init())
     .pipe(sass())
     .pipe(gulp.dest('./www/css/'))
@@ -31,7 +31,6 @@ gulp.task('sass', function(done) {
     .pipe(rename({ extname: '.min.css' }))
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('./www/css/'))
-    .on('end', done);
 });
 
 gulp.task('lint:js', function(){

@@ -1,0 +1,15 @@
+.welcome {
+    color: #fff;
+    background-size: cover, cover;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../img/owl.jpg');
+    h1 {
+        color: #fff;
+        text-align: center
+    }
+    .footer-buttons {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        left: 0;
+    }
+}

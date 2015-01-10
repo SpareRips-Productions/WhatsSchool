@@ -9,8 +9,10 @@
             <input type="text" placeholder="Filter Announcements" ng-model="ctrl.memberSearch">
         </label>
       </ion-item>
-      <ion-item ng-repeat="member in ctrl.group.members | filter: ctrl.memberSearch">
-          {{member.name}}
+      <ion-item ng-repeat="member in ctrl.members | filter: ctrl.memberSearch" class="item-avatar">
+          <img gravatar-src="'{{member.firstName}}'" />
+          {{member.firstName}} <strong>{{member.lastName}}</strong>
+          <p>{{member.email}} / @{{member.username}}</p>
       </ion-item>
     </ion-list>
   </ion-content>

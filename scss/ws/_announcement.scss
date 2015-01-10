@@ -1,0 +1,20 @@
+.announcement {
+    background: $background-gray;
+    .info {
+        background: #fff;
+        border-bottom: 1px solid $dark-gray;
+    }
+    .chat {
+        .list {
+            .item {
+                background: none;
+                border: 0;
+                .chat-message {
+                    min-height: 40px;
+                    background: #fff;
+                }
+            }
+        }
+        
+    }
+}

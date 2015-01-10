@@ -1,0 +1,12 @@
+@import 'ws/welcome';
+@import 'ws/settings';
+@import 'ws/announcement';
+@import 'ws/user';
+
+.dark-gray {
+    color: $dark-gray;
+}
+
+.bar .button.button-clear.button-header-done {
+    font-weight: 500;
+}
