@@ -3,10 +3,6 @@
 
     angular.module('ws.announcement')
         .factory('AnnouncementService', function($q, $timeout, UserSession){
-            return {
-                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById
-            };
 
             var user = UserSession.user;
 
@@ -34,7 +30,7 @@
                     deferred.resolve(announcements);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getAnnouncementById(id) {
                 //TODO: Implement Real Api
@@ -81,6 +77,11 @@
                     deferred.resolve(announcement);    
                 }, 1000);
                 return deferred.promise;
+            }
+
+            return {
+                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
+                getAnnouncementById: getAnnouncementById
             };
         });
 })();

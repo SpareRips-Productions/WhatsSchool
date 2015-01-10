@@ -45,7 +45,7 @@
                 var deferred = $q.defer();
                 //TODO: Login API
                 return this.login(credentials);
-            }
+            };
 
             authService.logout = function(){
                 //$ionicHistory.clearCache()

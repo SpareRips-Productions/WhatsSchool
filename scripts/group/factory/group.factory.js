@@ -3,11 +3,6 @@
 
     angular.module('ws.group')
         .factory('GroupService', function($q, $timeout, UserSession){
-            return {
-                getGroups: getGroups,
-                getGroupById: getGroupById
-            };
-
             var user = UserSession.user;
 
             function getGroups() {
@@ -29,7 +24,7 @@
                     deferred.resolve(groups);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getGroupById(id) {
                 //TODO: Implement Real Api
@@ -71,7 +66,13 @@
                     deferred.resolve(group);    
                 }, 1000);
                 return deferred.promise;
+            }
+
+            return {
+                getGroups: getGroups,
+                getGroupById: getGroupById
             };
+
         })
     ;
 })();

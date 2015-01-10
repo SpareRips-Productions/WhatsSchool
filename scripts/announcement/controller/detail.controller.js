@@ -7,10 +7,10 @@
             this.announcement = {};
             this.group = {};
 
-            this.newComment = "";
+            this.newComment = '';
             var user = UserSession.getUser();
 
-            _reload();
+            
 
             function _reload() {
                 GroupService.getGroupById($stateParams.groupId).then(function(group){
@@ -24,16 +24,18 @@
 
             this.isCurrentUserComment = function(comment) {
                 return comment.user.id === user.id;
-            }
+            };
 
             this.sendNewComment = function() {
                 var comment = {user: user, content: this.newComment};
                 if(this.announcement.comments) {
                     this.announcement.comments.push(comment);
-                    this.newComment = "";
+                    this.newComment = '';
                 }
                 $ionicScrollDelegate.scrollBottom();
-            }
+            };
+
+            _reload();
 
         });
 })();

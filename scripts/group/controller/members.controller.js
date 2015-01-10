@@ -7,7 +7,7 @@
             this.group = {};
             this.memebrs = [];
 
-            _reload();
+            
 
             function _reload() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
@@ -17,5 +17,7 @@
                     vm.members = members;
                 });
             }
+
+            _reload();
         });
 })();

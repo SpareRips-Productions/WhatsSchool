@@ -120,8 +120,8 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             ;
             
             $urlRouterProvider.otherwise( function($injector, $location) {
-                var $state = $injector.get("$state");
-                $state.go("welcome");
+                var $state = $injector.get('$state');
+                $state.go('welcome');
             });
         }]);
 })();
@@ -172,10 +172,10 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             this.announcement = {};
             this.group = {};
 
-            this.newComment = "";
+            this.newComment = '';
             var user = UserSession.getUser();
 
-            _reload();
+            
 
             function _reload() {
                 GroupService.getGroupById($stateParams.groupId).then(function(group){
@@ -189,180 +189,26 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 
             this.isCurrentUserComment = function(comment) {
                 return comment.user.id === user.id;
-            }
+            };
 
             this.sendNewComment = function() {
                 var comment = {user: user, content: this.newComment};
                 if(this.announcement.comments) {
                     this.announcement.comments.push(comment);
-                    this.newComment = "";
+                    this.newComment = '';
                 }
                 $ionicScrollDelegate.scrollBottom();
-            }
-
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .controller('GroupDetailCtrl', ["$stateParams", "GroupService", "AnnouncementService", "UserService", function($stateParams, GroupService, AnnouncementService, UserService){
-            var vm = this;
-            this.group = {};
-
-            this.members = [];
-
-            this.announcements = [];
-
-            this.getMemberNames = function() {
-                var members = [];
-                for(var i = 0; i < this.members.length; i += 1) {
-                    members.push(this.members[i].firstName + ' ' + this.members[i].lastName);
-                }
-                return members;
             };
 
             _reload();
 
-            function _reload() {
-                GroupService.getGroupById($stateParams.id).then(function(group){
-                    vm.group = group;
-                });
-                AnnouncementService.getAnnouncementsByGroupId($stateParams.id).then(function(announcements){
-                    vm.announcements = announcements;
-                });
-                UserService.getUsersByGroupId($stateParams.id).then(function(members){
-                    vm.members = members;
-                });
-            }
-
         }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .controller('GroupListCtrl', ["GroupService", function(GroupService){
-            var vm = this;
-            this.groups = [];
-
-            _reload();
-
-            function _reload() {
-                GroupService.getGroups().then(function(groups){
-                    vm.groups = groups;
-                });
-            }
-        }])
-    ;
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .controller('GroupMembersCtrl', ["$stateParams", "GroupService", "UserService", function($stateParams, GroupService, UserService){
-            var vm = this;
-            this.group = {};
-            this.memebrs = [];
-
-            _reload();
-
-            function _reload() {
-                GroupService.getGroupById($stateParams.id).then(function(group){
-                    vm.group = group;
-                });
-                UserService.getUsersByGroupId($stateParams.id).then(function(members){
-                    vm.members = members;
-                });
-            }
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .factory('GroupService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
-            return {
-                getGroups: getGroups,
-                getGroupById: getGroupById
-            };
-
-            var user = UserSession.user;
-
-            function getGroups() {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var groups = [
-                        {
-                            id: 1,
-                            name: 'Group 1',
-                            owner: 'Owner'
-                        },
-                        {
-                            id: 1,
-                            name: 'Group 2',
-                            owner: 'Owner 2'
-                        }
-                    ];
-                    deferred.resolve(groups);
-                }, 1000);
-                return deferred.promise;
-            };
-
-            function getGroupById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var group = {
-                        id: 1, 
-                        name: 'Group 1', 
-                        owner: 'Owner',
-                        announcements: [
-                            {
-                                id: 1,
-                                logo: 'ion-calendar',
-                                name: 'Announcement 1'
-                            },
-                            {
-                                id: 2,
-                                logo: 'ion-clock',
-                                name: 'Announcement 2'
-                            },
-                            {
-                                id: 3,
-                                logo: 'ion-coffee',
-                                name: 'Announcement 3'
-                            }
-                        ],
-                        members: [
-                            {name: 'John Doe'}, 
-                            {name: 'Jane Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}
-                        ]
-                    };
-
-                    deferred.resolve(group);    
-                }, 1000);
-                return deferred.promise;
-            };
-        }])
-    ;
 })();
 (function(){
     'use strict';
 
     angular.module('ws.announcement')
         .factory('AnnouncementService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
-            return {
-                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById
-            };
 
             var user = UserSession.user;
 
@@ -390,7 +236,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     deferred.resolve(announcements);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getAnnouncementById(id) {
                 //TODO: Implement Real Api
@@ -437,8 +283,170 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     deferred.resolve(announcement);    
                 }, 1000);
                 return deferred.promise;
+            }
+
+            return {
+                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
+                getAnnouncementById: getAnnouncementById
             };
         }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('GroupDetailCtrl', ["$stateParams", "GroupService", "AnnouncementService", "UserService", function($stateParams, GroupService, AnnouncementService, UserService){
+            var vm = this;
+            this.group = {};
+
+            this.members = [];
+
+            this.announcements = [];
+
+            this.getMemberNames = function() {
+                var members = [];
+                for(var i = 0; i < this.members.length; i += 1) {
+                    members.push(this.members[i].firstName + ' ' + this.members[i].lastName);
+                }
+                return members;
+            };
+
+            
+
+            function _reload() {
+                GroupService.getGroupById($stateParams.id).then(function(group){
+                    vm.group = group;
+                });
+                AnnouncementService.getAnnouncementsByGroupId($stateParams.id).then(function(announcements){
+                    vm.announcements = announcements;
+                });
+                UserService.getUsersByGroupId($stateParams.id).then(function(members){
+                    vm.members = members;
+                });
+            }
+            _reload();
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('GroupListCtrl', ["GroupService", function(GroupService){
+            var vm = this;
+            this.groups = [];
+
+            
+
+            function _reload() {
+                GroupService.getGroups().then(function(groups){
+                    vm.groups = groups;
+                });
+            }
+            _reload();
+        }])
+    ;
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('GroupMembersCtrl', ["$stateParams", "GroupService", "UserService", function($stateParams, GroupService, UserService){
+            var vm = this;
+            this.group = {};
+            this.memebrs = [];
+
+            
+
+            function _reload() {
+                GroupService.getGroupById($stateParams.id).then(function(group){
+                    vm.group = group;
+                });
+                UserService.getUsersByGroupId($stateParams.id).then(function(members){
+                    vm.members = members;
+                });
+            }
+
+            _reload();
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .factory('GroupService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
+            var user = UserSession.user;
+
+            function getGroups() {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var groups = [
+                        {
+                            id: 1,
+                            name: 'Group 1',
+                            owner: 'Owner'
+                        },
+                        {
+                            id: 1,
+                            name: 'Group 2',
+                            owner: 'Owner 2'
+                        }
+                    ];
+                    deferred.resolve(groups);
+                }, 1000);
+                return deferred.promise;
+            }
+
+            function getGroupById(id) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var group = {
+                        id: 1, 
+                        name: 'Group 1', 
+                        owner: 'Owner',
+                        announcements: [
+                            {
+                                id: 1,
+                                logo: 'ion-calendar',
+                                name: 'Announcement 1'
+                            },
+                            {
+                                id: 2,
+                                logo: 'ion-clock',
+                                name: 'Announcement 2'
+                            },
+                            {
+                                id: 3,
+                                logo: 'ion-coffee',
+                                name: 'Announcement 3'
+                            }
+                        ],
+                        members: [
+                            {name: 'John Doe'}, 
+                            {name: 'Jane Doe'}, 
+                            {name: 'John Doe'}, 
+                            {name: 'John Doe'}, 
+                            {name: 'John Doe'}, 
+                            {name: 'John Doe'}, 
+                            {name: 'John Doe'}, 
+                            {name: 'John Doe'}
+                        ]
+                    };
+
+                    deferred.resolve(group);    
+                }, 1000);
+                return deferred.promise;
+            }
+
+            return {
+                getGroups: getGroups,
+                getGroupById: getGroupById
+            };
+
+        }])
+    ;
 })();
 (function(){
     'use strict';
@@ -518,7 +526,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     angular.module('ws.user')
         .controller('RegisterCtrl', ["$rootScope", "$scope", "$ionicPopup", "AUTH_EVENTS", "Auth", function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth){
             this.credentials = {};
-            this.title = "";
+            this.title = '';
             var self = this;
             this.register = function(){
                 this.title = 'Please wait...';
@@ -550,7 +558,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     password: ''
                 };
                 self.title = 'Register';
-            };
+            }
             _init();
 
         }]);
@@ -649,7 +657,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 var deferred = $q.defer();
                 //TODO: Login API
                 return this.login(credentials);
-            }
+            };
 
             authService.logout = function(){
                 //$ionicHistory.clearCache()
@@ -675,11 +683,6 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 
      angular.module('ws.group')
         .factory('UserService', ["$q", "$timeout", "UserSession", "USER_ROLES", function($q, $timeout, UserSession, USER_ROLES){
-            return {
-                getUsers: getUsers,
-                getUsersByGroupId: getUsersByGroupId,
-                getUserById: getUserById
-            };
 
             var user = UserSession.user;
 
@@ -706,7 +709,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     deferred.resolve(users);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getUsersByGroupId(groupId) {
                 //TODO: Implement Real Api
@@ -731,7 +734,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     deferred.resolve(users);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getUserById(id) {
                 //TODO: Implement Real Api
@@ -748,6 +751,12 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     deferred.resolve(user);    
                 }, 1000);
                 return deferred.promise;
+            }
+
+            return {
+                getUsers: getUsers,
+                getUsersByGroupId: getUsersByGroupId,
+                getUserById: getUserById
             };
         }]);
 })();

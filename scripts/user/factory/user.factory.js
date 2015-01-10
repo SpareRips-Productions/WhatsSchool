@@ -3,11 +3,6 @@
 
      angular.module('ws.group')
         .factory('UserService', function($q, $timeout, UserSession, USER_ROLES){
-            return {
-                getUsers: getUsers,
-                getUsersByGroupId: getUsersByGroupId,
-                getUserById: getUserById
-            };
 
             var user = UserSession.user;
 
@@ -34,7 +29,7 @@
                     deferred.resolve(users);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getUsersByGroupId(groupId) {
                 //TODO: Implement Real Api
@@ -59,7 +54,7 @@
                     deferred.resolve(users);
                 }, 1000);
                 return deferred.promise;
-            };
+            }
 
             function getUserById(id) {
                 //TODO: Implement Real Api
@@ -76,6 +71,12 @@
                     deferred.resolve(user);    
                 }, 1000);
                 return deferred.promise;
+            }
+
+            return {
+                getUsers: getUsers,
+                getUsersByGroupId: getUsersByGroupId,
+                getUserById: getUserById
             };
         });
 })();
