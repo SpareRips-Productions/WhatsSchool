@@ -509,7 +509,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             vm.isStudent = function() {
                 return Auth.isAuthorized(USER_ROLES.student, USER_ROLES.teacher, USER_ROLES.admin);
             };
-            $rootScope.USER_ROLES = USER_ROLES;
+            vm.USER_ROLES = USER_ROLES;
         }]);
 })();
 (function(){
@@ -799,7 +799,8 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             return {
                 getUsers: getUsers,
                 getUsersByGroupId: getUsersByGroupId,
-                getUserById: getUserById
+                getUserById: getUserById,
+                deleteUserFromGroup: deleteUserFromGroup
             };
         }]);
 })();

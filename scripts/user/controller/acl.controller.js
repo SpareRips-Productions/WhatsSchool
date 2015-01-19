@@ -20,6 +20,6 @@
             vm.isStudent = function() {
                 return Auth.isAuthorized(USER_ROLES.student, USER_ROLES.teacher, USER_ROLES.admin);
             };
-            $rootScope.USER_ROLES = USER_ROLES;
+            vm.USER_ROLES = USER_ROLES;
         });
 })();

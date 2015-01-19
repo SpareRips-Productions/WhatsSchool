@@ -90,7 +90,8 @@
             return {
                 getUsers: getUsers,
                 getUsersByGroupId: getUsersByGroupId,
-                getUserById: getUserById
+                getUserById: getUserById,
+                deleteUserFromGroup: deleteUserFromGroup
             };
         });
 })();
