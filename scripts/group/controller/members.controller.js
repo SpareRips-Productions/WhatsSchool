@@ -7,7 +7,11 @@
             this.group = {};
             this.memebrs = [];
 
-            
+            this.deleteUserFromGroup =function(user){
+                UserService.deleteUserFromGroup(user, vm.group.id).then(function(){
+                    _reload();
+                });
+            }
 
             function _reload() {
                 GroupService.getGroupById($stateParams.id).then(function(group){

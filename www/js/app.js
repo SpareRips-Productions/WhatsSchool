@@ -356,7 +356,11 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             this.group = {};
             this.memebrs = [];
 
-            
+            this.deleteUserFromGroup =function(user){
+                UserService.deleteUserFromGroup(user, vm.group.id).then(function(){
+                    _reload();
+                });
+            }
 
             function _reload() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
@@ -482,6 +486,31 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             teacher:    'teacher',
             student:    'student',
         });
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.user')
+        .controller('AclCtrl', ["$rootScope", "Auth", "USER_ROLES", function($rootScope, Auth, USER_ROLES){
+            var vm = this;
+
+            vm.isAuthorized = function(groups) {
+                return Auth.isAuthorized(groups);
+            };
+
+            vm.isAdmin = function() {
+                return Auth.isAuthorized([USER_ROLES.admin]);
+            };
+
+            vm.isTeacher = function() {
+                return Auth.isAuthorized([USER_ROLES.teacher, USER_ROLES.admin])
+            };
+
+            vm.isStudent = function() {
+                return Auth.isAuthorized(USER_ROLES.student, USER_ROLES.teacher, USER_ROLES.admin);
+            };
+            $rootScope.USER_ROLES = USER_ROLES;
+        }]);
 })();
 (function(){
     'use strict';
@@ -692,6 +721,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 $timeout(function(){
                     var users = [
                         {
+                            id: 1,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -699,6 +729,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                             role: USER_ROLES.student
                         },
                         {
+                            id: 2,
                             firstName: 'Administratore', 
                             lastName: 'Admin', 
                             username: 'admin',
@@ -717,6 +748,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 $timeout(function(){
                     var users = [
                         {
+                            id: 1,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -724,6 +756,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                             role: USER_ROLES.student
                         },
                         {
+                            id: 2,
                             firstName: 'Administratore', 
                             lastName: 'Admin', 
                             username: 'admin',
@@ -741,6 +774,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 var deferred = $q.defer();
                 $timeout(function(){
                     var user = {
+                        id: 3,
                         firstName: 'Thomas', 
                         lastName: 'Hampe',     
                         username: 'thomas',
@@ -749,6 +783,15 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     };
 
                     deferred.resolve(user);    
+                }, 1000);
+                return deferred.promise;
+            }
+
+            function deleteUserFromGroup(user, groupId) {
+                var userId = (angular.isObject(user)) ? user.id : user;
+                var deferred = $q.defer();
+                $timeout(function(){
+                    return deferred.resolve(true);
                 }, 1000);
                 return deferred.promise;
             }

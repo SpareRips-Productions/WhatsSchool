@@ -12,6 +12,7 @@
                 $timeout(function(){
                     var users = [
                         {
+                            id: 1,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -19,6 +20,7 @@
                             role: USER_ROLES.student
                         },
                         {
+                            id: 2,
                             firstName: 'Administratore', 
                             lastName: 'Admin', 
                             username: 'admin',
@@ -37,6 +39,7 @@
                 $timeout(function(){
                     var users = [
                         {
+                            id: 1,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -44,6 +47,7 @@
                             role: USER_ROLES.student
                         },
                         {
+                            id: 2,
                             firstName: 'Administratore', 
                             lastName: 'Admin', 
                             username: 'admin',
@@ -61,6 +65,7 @@
                 var deferred = $q.defer();
                 $timeout(function(){
                     var user = {
+                        id: 3,
                         firstName: 'Thomas', 
                         lastName: 'Hampe',     
                         username: 'thomas',
@@ -69,6 +74,15 @@
                     };
 
                     deferred.resolve(user);    
+                }, 1000);
+                return deferred.promise;
+            }
+
+            function deleteUserFromGroup(user, groupId) {
+                var userId = (angular.isObject(user)) ? user.id : user;
+                var deferred = $q.defer();
+                $timeout(function(){
+                    return deferred.resolve(true);
                 }, 1000);
                 return deferred.promise;
             }

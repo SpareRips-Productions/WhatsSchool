@@ -24,7 +24,8 @@
          <i class="icon dark-gray ion-ios7-arrow-forward"></i>
   		</ion-item>
   	</ion-list>
-  	<button class="button button-full button-calm">Add Announcement</button>
-  	<button class="button button-full button-assertive">Delete Group</button>
+
+  	<button class="button button-full button-calm" ng-show="Acl.isTeacher()">Add Announcement</button>
+  	<button class="button button-full button-assertive" ng-show="Acl.isTeacher()">Delete Group</button>
   </ion-content>
 </ion-view>
