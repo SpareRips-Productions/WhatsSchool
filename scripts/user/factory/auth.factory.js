@@ -48,7 +48,7 @@
             };
 
             authService.logout = function(){
-                //$ionicHistory.clearCache();
+                $ionicHistory.clearCache();
                 return UserSession.destroy();
             };
 

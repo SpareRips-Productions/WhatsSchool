@@ -1,15 +1,12 @@
-<ion-view hide-nav-bar="true" class="welcome" animation="fade-in">
-    <ion-content >
+<ion-view hide-nav-bar="true" class="welcome" >
+    <ion-content has-bouncing="false">
         <div class="padding">
-            <h1 class="center">Welcome to WhatsSchool</h1>
-            <p>
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
-            </p>
+            <img class="logo" src="img/logo.png" alt="WhatsSchool" />
         </div>
         
     </ion-content>
     <div class="footer-buttons">
         <button class="button button-full button-positive" ng-click="ctrl.openLogin()">Login</button>
-        <button class="button button-full button-balanced" ng-click="ctrl.openRegister()">Register</button>
+        <button class="button button-full button-dark" ng-click="ctrl.openRegister()">Register</button>
     </div>
 </ion-view>

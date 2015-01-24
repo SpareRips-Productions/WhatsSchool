@@ -1,4 +1,4 @@
-<ion-view title="Groups" hide-back-button="true">
+<ion-view title="WhatsSchool" hide-back-button="true">
   <ion-nav-buttons side="left">
     <button class="button button-icon icon ion-ios7-cog-outline" ng-click="ctrl.openSettingsModal()"></button>
   </ion-nav-buttons>
@@ -14,7 +14,7 @@
   		</ion-item>
   		<ion-item class="item-icon-right" ng-repeat="group in ctrl.groups | filter: ctrl.groupSearch" href="#/tabs/groups/{{group.id}}">
   			<h2>{{ group.name }}</h2>
-  			<p>{{group.owner.firstName}} <strong>{{group.owner.lastName}}</strong></p>
+  			<p>{{group.owner.firstName}} {{group.owner.lastName}}</p>
         <i class="icon dark-gray ion-ios7-arrow-forward"></i>
   		  <ion-option-button class="button-assertive" ng-click="ctrl.delete(group)" ng-show="Acl.isTeacher() && ctrl.canDelete(group)">
             Delete

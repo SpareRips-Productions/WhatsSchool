@@ -52,7 +52,7 @@ gulp.task('js', function() {
         .pipe(sourcemaps.init())
         .pipe(concat('app.js'))
         .pipe(gulp.dest('www/js'))
-        //.pipe(uglify())
+        .pipe(uglify())
         .pipe(rename({suffix: '.min'}))
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('www/js'))

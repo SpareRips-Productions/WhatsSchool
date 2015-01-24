@@ -1,0 +1,22 @@
+$positive: #a73030;
+$dark: #444;
+$lobster:  'lobster_regular', 'Helvetica Neue', Roboto, sans-serif;
+.ws {
+    .bar .title {
+        font-family: $lobster;
+        font-size: 20px;
+    }
+    .announcement .info h3 { 
+        .ion {
+            color: $positive;
+        }
+        //color: $positive;
+        font-family: $lobster;
+    }
+    .members-add {
+        .header-icon-with-badge .header-icon-title {
+            font-family: $lobster;
+        }
+    }
+
+} 

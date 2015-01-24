@@ -319,15 +319,15 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         comments: [
                             {
                                 content: 'Cool',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
                             },
                             {
                                 content: 'Awesome!!!',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
                             }, 
                             {
                                 content: 'Super',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
                             },                        
                             {
                                 content: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
@@ -335,11 +335,11 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
                         'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
                         'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
                             },
                             {
                                 content: 'Shiiit!',
-                                user: { id: 4, firstName: 'Thomas', lastName: 'Hampe'}
+                                user: { id: 1, firstName: 'Thomas', lastName: 'Hampe'}
                             },     
                         ]            
                     };
@@ -1052,7 +1052,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             };
 
             authService.logout = function(){
-                //$ionicHistory.clearCache();
+                $ionicHistory.clearCache();
                 return UserSession.destroy();
             };
 

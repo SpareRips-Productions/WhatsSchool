@@ -1,14 +1,13 @@
 .group-add {
     .header-icon {
         color: $positive;
-        color: #387ef5;
         text-align: center;
         margin: 15px auto;
         display: block;
         font-size: 100px;
         width: 130px;
         height: 130px;
-        border: 2px solid $positive;
+        border: 2px solid $dark;
         border-radius: 50%;
         line-height: 130px;
     }
@@ -36,13 +35,11 @@
         }
 
         .header-icon {
-            color: $positive;
-            color: #387ef5;
-            
+            color: $positive;            
             display: block;
             font-size: 100px;
             
-            border: 2px solid $positive;
+            border: 2px solid $dark;
             border-radius: 50%;
             line-height: 130px;
         }

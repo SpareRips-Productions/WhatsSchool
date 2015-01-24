@@ -1,11 +1,20 @@
 .welcome {
-    color: #fff;
+    /*color: #fff;
     background-size: cover, cover;
     background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../img/owl.jpg');
     h1 {
         color: #fff;
         text-align: center
+    }*/
+    .logo {
+        max-width: 100%;
+        display: block;
+        margin-top: 20px;
+        max-height: 300px;
+        text-align: center;
+        margin: 30px auto;
     }
+
     .footer-buttons {
         position: absolute;
         width: 100%;

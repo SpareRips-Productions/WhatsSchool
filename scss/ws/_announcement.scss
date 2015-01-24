@@ -28,7 +28,7 @@
                     }
                     .user {
                         font-weight: 700;
-                        color: $royal;
+                        color: $positive;
                         font-size: 12px;
                     }
                 }
@@ -47,7 +47,7 @@
                             border-left: 10px solid #fff;
                         }
                         .user {
-                            color: $balanced;
+                            color: $dark;
                         }
                     }
                 }
@@ -65,14 +65,13 @@
 .announcement-add {
     .header-icon {
         color: $positive;
-        color: #387ef5;
         text-align: center;
         margin: 15px auto;
         display: block;
         font-size: 90px;
         width: 130px;
         height: 130px;
-        border: 2px solid $positive;
+        border: 2px solid $dark;
         border-radius: 50%;
         line-height: 130px;
     }
