@@ -13,7 +13,7 @@
                     var user;
                     if(credentials.username === 'thomas') {
                         user = {
-                            id: 4,
+                            id: 1,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -24,9 +24,9 @@
                         deferred.resolve(user);
                     } else if(credentials.username === 'admin') {
                         user = {
-                            id: 5,
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
+                            id: 2,
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
                             username: 'admin',
                             email: 'admin@hampe.co', 
                             role: USER_ROLES.admin
@@ -48,7 +48,7 @@
             };
 
             authService.logout = function(){
-                //$ionicHistory.clearCache()
+                //$ionicHistory.clearCache();
                 return UserSession.destroy();
             };
 

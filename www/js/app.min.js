@@ -89,19 +89,10 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     url: '/groups/:id/members',
                     views: {
                         'tab-groups': {
-                            templateUrl: 'templates/user/groupUsers.html',
+                            templateUrl: 'templates/group/members.html',
                             controller: 'GroupMembersCtrl as ctrl'
                         }
                     }
-                })
-                .state('tabs.contacts', {
-                    url: '/contacts',
-                    views: {
-                        'tab-contacts': {
-                            templateUrl: 'templates/user/list.html'
-                        }
-                    }
-                    
                 })
                 .state('tabs.settings', {
                     url: '/settings',
@@ -175,12 +166,224 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 (function(){
     'use strict';
 
+    angular.module('ws.announcement')
+        .controller('AddAnnouncementCtrl', ["$scope", "$ionicPopup", "ANNOUNCEMENT_TYPES", "AnnouncementService", function($scope, $ionicPopup, ANNOUNCEMENT_TYPES, AnnouncementService){
+            var vm = this;
+            function _reset() {
+                vm.announcement = {
+                    name: '',
+                    description: '',
+                    logo: ANNOUNCEMENT_TYPES.calendar.logo,
+                    group: $scope.group
+                };
+                vm.title = 'new Announcement';
+            }
+            _reset();
+
+            this.add = function(){
+                this.title = 'Please wait...';
+                AnnouncementService.newAnnouncement(vm.Announcement).then(function(Announcement) {
+                    _reset();
+                    if($scope.addAnnouncementModal) {
+                        $scope.addAnnouncementModal.hide();
+                    }
+                }, function (error) {
+                    self.title = 'new Announcement';
+                    $ionicPopup.alert({
+                        title: 'Ooops :(',
+                        template: error.message || 'Please try again later...'
+                    });
+                });
+            };
+
+            this.types = ANNOUNCEMENT_TYPES;
+
+            this.cancel = function() {
+                if($scope.addAnnouncementModal) {
+                    $scope.addAnnouncementModal.hide();
+                }
+            };
+
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.announcement')
+        .controller('AnnouncementDetailCtrl', ["$stateParams", "$ionicScrollDelegate", "$ionicActionSheet", "$ionicHistory", "GroupService", "AnnouncementService", "UserSession", function($stateParams, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory, GroupService, AnnouncementService, UserSession){
+            var vm = this;
+            this.announcement = {};
+            this.group = {};
+
+            this.newComment = '';
+            var user = UserSession.getUser();
+
+            
+
+            function _reload() {
+                GroupService.getGroupById($stateParams.groupId).then(function(group){
+                    vm.group = group;
+                });
+                AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
+                    vm.announcement = announcement;
+                    $ionicScrollDelegate.scrollBottom();
+                });
+            }
+
+            this.edit = function(){
+                var editSheet = $ionicActionSheet.show({
+                    destructiveText: 'Delete',
+                    titleText: 'Edit Announcement',
+                    cancelText: 'Cancel',
+                    destructiveButtonClicked: function(){
+                        AnnouncementService.deleteAnnouncement(vm.announcement).then(function(){
+                            editSheet();
+                            $ionicHistory.goBack();
+                        }, function(){
+                            editSheet();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+            };
+
+            this.isCurrentUserComment = function(comment) {
+                return comment.user.id === user.id;
+            };
+
+            this.sendNewComment = function() {
+                var comment = {user: user, content: this.newComment};
+                if(this.announcement.comments) {
+                    this.announcement.comments.push(comment);
+                    this.newComment = '';
+                }
+                $ionicScrollDelegate.scrollBottom();
+            };
+
+            _reload();
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.announcement')
+        .factory('AnnouncementService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
+
+            var user = UserSession.user;
+
+            function getAnnouncementsByGroupId(groupId) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var announcements = [
+                        {
+                            id: 1,
+                            logo: 'ion-calendar',
+                            name: 'Announcement 1'
+                        },
+                        {
+                            id: 2,
+                            logo: 'ion-clock',
+                            name: 'Announcement 2'
+                        },
+                        {
+                            id: 3,
+                            logo: 'ion-coffee',
+                            name: 'Announcement 3'
+                        }
+                    ];
+                    deferred.resolve(announcements);
+                }, 1000);
+                return deferred.promise;
+            }
+
+            function getAnnouncementById(id) {
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    var announcement ={
+                        id: 1,
+                        groupId: 1,
+                        logo: 'ion-calendar',
+                        name: 'Announcement 1',
+                        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
+                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
+                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
+                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
+                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+                        comments: [
+                            {
+                                content: 'Cool',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            },
+                            {
+                                content: 'Awesome!!!',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            }, 
+                            {
+                                content: 'Super',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            },                        
+                            {
+                                content: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
+                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
+                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
+                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
+                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
+                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
+                            },
+                            {
+                                content: 'Shiiit!',
+                                user: { id: 4, firstName: 'Thomas', lastName: 'Hampe'}
+                            },     
+                        ]            
+                    };
+
+                    deferred.resolve(announcement);    
+                }, 1000);
+                return deferred.promise;
+            }
+
+            function newAnnouncement(announcement){
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(announcement);
+                },1000);
+                return deferred.promise;
+            }
+
+            function deleteAnnouncement(announcement){
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(announcement);
+                },1000);
+                return deferred.promise;   
+            }
+
+            return {
+                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
+                getAnnouncementById: getAnnouncementById,
+                newAnnouncement: newAnnouncement,
+                deleteAnnouncement: deleteAnnouncement
+            };
+        }]);
+})();
+(function(){
+    'use strict';
+
     angular.module('ws.group')
-        .controller('AddGroupCtrl', ["$scope", "$ionicPopup", "GroupService", function($scope, $ionicPopup, GroupService){
+        .controller('AddGroupCtrl', ["$scope", "$ionicPopup", "GroupService", "UserSession", function($scope, $ionicPopup, GroupService, UserSession){
             var vm = this;
             function _reset() {
                 vm.group = {
-                    name: ''
+                    name: '',
+                    owner: UserSession.getUser()
                 };
                 vm.title = 'new Group';
             }
@@ -344,10 +547,9 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupListCtrl', ["$scope", "$ionicModal", "GroupService", function($scope, $ionicModal, GroupService){
+        .controller('GroupListCtrl', ["$scope", "$ionicModal", "$ionicActionSheet", "$ionicPopup", "$ionicListDelegate", "GroupService", "UserSession", function($scope, $ionicModal, $ionicActionSheet, $ionicPopup, $ionicListDelegate, GroupService, UserSession){
             var vm = this;
             this.groups = [];
-
             this.openAddGroupModal = function(){
                 if($scope.addGroupModal) {
                     $scope.addGroupModal.show();
@@ -359,6 +561,45 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             }).then(function(modal) {
                 $scope.addGroupModal = modal;
             });
+
+            this.openSettingsModal = function(){
+                if($scope.settingsModal) {
+                    $scope.settingsModal.show();
+                }                
+            };
+            $ionicModal.fromTemplateUrl('templates/settings.html', {
+                scope: $scope,
+                animation: 'slide-in-up'
+            }).then(function(modal) {
+                $scope.settingsModal = modal;
+            });
+
+            this.canDelete = function(group) {
+                return UserSession.getUser().id == group.owner.id;
+            }
+
+            this.delete = function(group){
+                var deleteSheet = $ionicActionSheet.show({
+                    destructiveText: 'Delete',
+                    titleText: 'Delete ' + group.name +', are you sure?',
+                    cancelText: 'Cancel',
+                    cancel: function(){
+                        $ionicListDelegate.closeOptionButtons();
+                    },
+                    destructiveButtonClicked: function(){
+                        GroupService.deleteGroup(group).then(function(){
+                            deleteSheet();
+                            $ionicListDelegate.closeOptionButtons();
+                        }, function(){
+                            deleteSheet();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+            };
 
             function _reload() {
                 GroupService.getGroups().then(function(groups){
@@ -373,16 +614,56 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupMembersCtrl', ["$stateParams", "GroupService", "UserService", function($stateParams, GroupService, UserService){
+        .controller('GroupMembersCtrl', ["$scope", "$stateParams", "$ionicActionSheet", "$ionicListDelegate", "$ionicModal", "$ionicPopup", "GroupService", "UserService", "UserSession", function($scope, $stateParams, $ionicActionSheet, $ionicListDelegate, $ionicModal, $ionicPopup, GroupService, UserService, UserSession){
             var vm = this;
+            var currentUser = UserSession.getUser();
             this.group = {};
             this.memebrs = [];
 
-            this.deleteUserFromGroup =function(user){
-                UserService.deleteUserFromGroup(user, vm.group.id).then(function(){
-                    _reload();
-                });
+            this.isLoggedIn = function(user){
+                return user.id === currentUser.id;
             }
+
+            this.canDelete = function(user){
+                return !this.isLoggedIn(user) && this.group.owner.id == currentUser.id;
+            }
+
+            this.delete = function(user){
+                var deleteSheet = $ionicActionSheet.show({
+                    destructiveText: 'Remove',
+                    titleText: 'Remove <strong>' + user.firstName + ' ' + user.lastName + '</strong> from this Group?',
+                    cancelText: 'Cancel',
+                    cancel: function(){
+                        $ionicListDelegate.closeOptionButtons();
+                    },
+                    destructiveButtonClicked: function(){
+                        UserService.deleteUserFromGroup(user, vm.group.id).then(function(){
+                            deleteSheet();
+                            $ionicListDelegate.closeOptionButtons();
+                        }, function(){
+                            deleteSheet();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+            };
+
+            $ionicModal.fromTemplateUrl('templates/group/members/add.html', {
+                scope: $scope,
+                animation: 'slide-in-up'
+            }).then(function(modal) {
+                $scope.addMembersModal = modal;
+            });
+
+            this.addMembers = function(){
+                if($scope.addMembersModal) {
+                    $scope.addMembersModal.show();
+                } 
+            }
+
 
             function _reload() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
@@ -399,114 +680,8 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 (function(){
     'use strict';
 
-    angular.module('ws.announcement')
-        .factory('AnnouncementService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
-
-            var user = UserSession.user;
-
-            function getAnnouncementsByGroupId(groupId) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var announcements = [
-                        {
-                            id: 1,
-                            logo: 'ion-calendar',
-                            name: 'Announcement 1'
-                        },
-                        {
-                            id: 2,
-                            logo: 'ion-clock',
-                            name: 'Announcement 2'
-                        },
-                        {
-                            id: 3,
-                            logo: 'ion-coffee',
-                            name: 'Announcement 3'
-                        }
-                    ];
-                    deferred.resolve(announcements);
-                }, 1000);
-                return deferred.promise;
-            }
-
-            function getAnnouncementById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var announcement ={
-                        id: 1,
-                        groupId: 1,
-                        logo: 'ion-calendar',
-                        name: 'Announcement 1',
-                        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
-                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
-                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
-                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
-                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                        comments: [
-                            {
-                                content: 'Cool',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
-                            },
-                            {
-                                content: 'Awesome!!!',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
-                            }, 
-                            {
-                                content: 'Super',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
-                            },                        
-                            {
-                                content: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
-                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
-                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
-                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
-                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                                user: { id: 1, firstName: 'John', lastName: 'Doe'}
-                            },
-                            {
-                                content: 'Shiiit!',
-                                user: { id: 4, firstName: 'Thomas', lastName: 'Hampe'}
-                            },     
-                        ]            
-                    };
-
-                    deferred.resolve(announcement);    
-                }, 1000);
-                return deferred.promise;
-            }
-
-            function newAnnouncement(announcement){
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    deferred.resolve(announcement);
-                },1000);
-                return deferred.promise;
-            }
-
-            function deleteAnnouncement(announcement){
-                var deferred = $q.defer();
-                $timeout(function(){
-                    deferred.resolve(announcement);
-                },1000);
-                return deferred.promise;   
-            }
-
-            return {
-                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById,
-                newAnnouncement: newAnnouncement,
-                deleteAnnouncement: deleteAnnouncement
-            };
-        }]);
-})();
-(function(){
-    'use strict';
-
     angular.module('ws.group')
-        .factory('GroupService', ["$q", "$timeout", "UserSession", "UserService", function($q, $timeout, UserSession, UserService){
+        .factory('GroupService', ["$q", "$timeout", "UserSession", "UserService", "USER_ROLES", function($q, $timeout, UserSession, UserService, USER_ROLES){
             var user = UserSession.user;
 
             function getGroups() {
@@ -517,12 +692,26 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         {
                             id: 1,
                             name: 'Group 1',
-                            owner: 'Owner'
+                            owner: {
+                                id: 2,
+                                firstName: 'Admini', 
+                                lastName: 'Stratore', 
+                                username: 'admin',
+                                email: 'admin@hampe.co', 
+                                role: USER_ROLES.admin
+                            }
                         },
                         {
                             id: 1,
                             name: 'Group 2',
-                            owner: 'Owner 2'
+                            owner: {
+                                id: 2,
+                                firstName: 'Admini', 
+                                lastName: 'Stratore', 
+                                username: 'admin',
+                                email: 'admin@hampe.co', 
+                                role: USER_ROLES.admin
+                            }
                         }
                     ];
                     deferred.resolve(groups);
@@ -537,7 +726,14 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     var group = {
                         id: 1, 
                         name: 'Group 1', 
-                        owner: 'Owner',
+                        owner: {
+                            id: 2,
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
+                            username: 'admin',
+                            email: 'admin@hampe.co', 
+                            role: USER_ROLES.admin
+                        },
                         announcements: [
                             {
                                 id: 1,
@@ -614,10 +810,19 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.settings')
-        .controller('SettingsCtrl', ["$state", "Auth", "UserSession", function($state, Auth, UserSession){
+        .controller('SettingsCtrl', ["$scope", "$state", "Auth", "UserSession", function($scope, $state, Auth, UserSession){
+            var vm = this;
+
             this.logout = function() {
                 Auth.logout();
+                vm.done();
                 $state.go('welcome');
+                
+            };
+            this.done = function() {
+                if($scope.settingsModal) {
+                    $scope.settingsModal.hide();
+                }
             };
             this.user = UserSession.getUser();
         }]);
@@ -812,7 +1017,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     var user;
                     if(credentials.username === 'thomas') {
                         user = {
-                            id: 4,
+                            id: 1,
                             firstName: 'Thomas', 
                             lastName: 'Hampe',     
                             username: 'thomas',
@@ -823,9 +1028,9 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         deferred.resolve(user);
                     } else if(credentials.username === 'admin') {
                         user = {
-                            id: 5,
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
+                            id: 2,
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
                             username: 'admin',
                             email: 'admin@hampe.co', 
                             role: USER_ROLES.admin
@@ -847,7 +1052,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             };
 
             authService.logout = function(){
-                //$ionicHistory.clearCache()
+                //$ionicHistory.clearCache();
                 return UserSession.destroy();
             };
 
@@ -888,11 +1093,51 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         },
                         {
                             id: 2,
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
                             username: 'admin',
                             email: 'admin@hampe.co', 
                             role: USER_ROLES.admin
+                        },
+                        {
+                            id: 3,
+                            firstName: 'Thomas 5', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 4,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 5,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 6,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 7,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
                         }
                     ];
                     deferred.resolve(users);
@@ -915,8 +1160,8 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         },
                         {
                             id: 2,
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
                             username: 'admin',
                             email: 'admin@hampe.co', 
                             role: USER_ROLES.admin
@@ -955,7 +1200,6 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             }
 
             function addUserToGroup(user, groupId) {
-                var userId = (angular.isObject(user)) ? user.id : user;
                 var deferred = $q.defer();
                 $timeout(function(){
                     return deferred.resolve(true);
@@ -1001,105 +1245,72 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 (function(){
     'use strict';
 
-    angular.module('ws.announcement')
-        .controller('AddAnnouncementCtrl', ["$scope", "$ionicPopup", "ANNOUNCEMENT_TYPES", "AnnouncementService", function($scope, $ionicPopup, ANNOUNCEMENT_TYPES, AnnouncementService){
+    angular.module('ws.group')
+        .controller('AddMembersCtrl', ["$scope", "$q", "$stateParams", "$ionicPopup", "UserService", "GroupService", function($scope, $q, $stateParams, $ionicPopup, UserService, GroupService){
             var vm = this;
+            vm.group = {};
+            vm.members = [];
+            vm.users = [];
+
             function _reset() {
-                vm.announcement = {
-                    name: '',
-                    description: '',
-                    logo: ANNOUNCEMENT_TYPES.calendar.logo,
-                    group: $scope.group
-                };
-                vm.title = 'new Announcement';
+                vm.title = 'add Members';
             }
+            function _reload() {
+                GroupService.getGroupById($stateParams.id).then(function(group){
+                    vm.group = group;
+                });
+                $q.all([UserService.getUsers(), UserService.getUsersByGroupId()]).then(function(results){
+                    vm.users = results[0];
+                    vm.members = results[1];
+                    var isInGroup = {};
+                    for(var i in vm.members) {
+                        isInGroup[vm.members[i].id] = true;
+                    }
+
+                    angular.forEach(vm.users, function(user, key){
+                        vm.users[key].isInGroup = !!isInGroup[user.id];
+                        vm.users[key].wasInGroup = !!isInGroup[user.id];
+
+                    })
+                });
+            }
+
             _reset();
+            _reload();
 
             this.add = function(){
                 this.title = 'Please wait...';
-                AnnouncementService.newAnnouncement(vm.Announcement).then(function(Announcement) {
-                    _reset();
-                    if($scope.addAnnouncementModal) {
-                        $scope.addAnnouncementModal.hide();
+                var usersAddToGroup = []
+                var user;
+                for(var i = 0; i < vm.users.length; i++) {
+                    user = vm.users[i];
+                    if(user.isInGroup && !user.wasInGroup){
+                        usersAddToGroup.push(UserService.addUserToGroup(user, vm.group.id));
                     }
-                }, function (error) {
-                    self.title = 'new Announcement';
+                }
+                $q.all(usersAddToGroup).then(function(){
+                    _reset();
+                    if($scope.addMembersModal) {
+                        $scope.addMembersModal.hide();
+                    }
+                }, function(error){
+                    self.title = 'add Members';
                     $ionicPopup.alert({
                         title: 'Ooops :(',
                         template: error.message || 'Please try again later...'
                     });
                 });
-            };
 
-            this.types = ANNOUNCEMENT_TYPES;
+            };
 
             this.cancel = function() {
-                if($scope.addAnnouncementModal) {
-                    $scope.addAnnouncementModal.hide();
+                if($scope.addMembersModal) {
+                    $scope.addMembersModal.hide();
                 }
             };
-
-
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.announcement')
-        .controller('AnnouncementDetailCtrl', ["$stateParams", "$ionicScrollDelegate", "$ionicActionSheet", "$ionicHistory", "GroupService", "AnnouncementService", "UserSession", function($stateParams, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory, GroupService, AnnouncementService, UserSession){
-            var vm = this;
-            this.announcement = {};
-            this.group = {};
-
-            this.newComment = '';
-            var user = UserSession.getUser();
 
             
 
-            function _reload() {
-                GroupService.getGroupById($stateParams.groupId).then(function(group){
-                    vm.group = group;
-                });
-                AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
-                    vm.announcement = announcement;
-                    $ionicScrollDelegate.scrollBottom();
-                });
-            }
-
-            this.edit = function(){
-                var editSheet = $ionicActionSheet.show({
-                    destructiveText: 'Delete',
-                    titleText: 'Edit Announcement',
-                    cancelText: 'Cancel',
-                    destructiveButtonClicked: function(){
-                        AnnouncementService.deleteAnnouncement(vm.announcement).then(function(){
-                            editSheet();
-                            $ionicHistory.goBack();
-                        }, function(){
-                            editSheet();
-                            $ionicPopup.alert({
-                                title: 'Ooops :(',
-                                template: error.message || 'Please try again later...'
-                            });
-                        });
-                    }
-                });
-            };
-
-            this.isCurrentUserComment = function(comment) {
-                return comment.user.id === user.id;
-            };
-
-            this.sendNewComment = function() {
-                var comment = {user: user, content: this.newComment};
-                if(this.announcement.comments) {
-                    this.announcement.comments.push(comment);
-                    this.newComment = '';
-                }
-                $ionicScrollDelegate.scrollBottom();
-            };
-
-            _reload();
 
         }]);
 })();

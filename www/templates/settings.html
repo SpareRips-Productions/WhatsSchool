@@ -1,12 +1,18 @@
-<ion-view title="Settings" class="settings">
-  <ion-content>
-    <ion-list>
-        <ion-item class="item-avatar">
-            <img gravatar-src="'{{ctrl.user.email}}'" />
-            <h3>{{ctrl.user.firstName}} {{ctrl.user.lastName}}</h3>
-            <p>{{ctrl.user.email}} / @{{ctrl.user.username}}</p>
-        </ion-item>
-    </ion-list>
-    <button class="button button-full button-light button-logout" ng-click="ctrl.logout()">Logout</button>
-  </ion-content>
-</ion-view>
+<ion-modal-view ng-controller="SettingsCtrl as SettingsCtrl" class="settings">
+    <ion-header-bar class="bar-positive">
+        <h1 class="title">Settings</h1>
+        <div class="buttons">
+            <button class="button button-clear button-header-done" ng-click="SettingsCtrl.done()">Done</button>
+        </div>
+    </ion-header-bar>
+      <ion-content>
+        <ion-list>
+            <ion-item class="item-avatar">
+                <img gravatar-src="'{{SettingsCtrl.user.email}}'" />
+                <h3>{{SettingsCtrl.user.firstName}} {{SettingsCtrl.user.lastName}}</h3>
+                <p>{{SettingsCtrl.user.email}} / @{{SettingsCtrl.user.username}}</p>
+            </ion-item>
+        </ion-list>
+        <button class="button button-full button-light button-logout" ng-click="SettingsCtrl.logout()">Logout</button>
+      </ion-content>
+</ion-modal-view>

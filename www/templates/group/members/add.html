@@ -1,0 +1,33 @@
+<ion-modal-view ng-controller="AddMembersCtrl as AddCtrl" class="members-add">
+    <ion-header-bar class="bar-positive">
+        
+        <div class="buttons">
+            <button class="button button-clear" ng-click="AddCtrl.cancel()">Cancel</button>
+        </div>
+        <h1 class="title">{{AddCtrl.title}}</h1>
+        <div class="buttons">
+            <button class="button button-clear button-header-done" ng-click="AddCtrl.add()">Add</button>
+        </div>
+
+    </ion-header-bar>
+    <ion-content>
+
+        <div class="header-icon-with-badge">
+            <span class="badge badge-positive">{{(AddCtrl.users|filter:{isInGroup:'true'}).length}}</span>     
+            <i class="header-icon icon ion-ios7-people"></i> 
+            <span class="header-icon-title">{{ AddCtrl.group.name }}</span>  
+        </div>
+        <form class="list" ng-submit="AddCtrl.add()">
+            <ion-item class="item-input-inset">
+                <label class="item-input-wrapper">
+                    <input type="text" placeholder="Filter Users" ng-model="ctrl.userSearch">
+                </label>
+            </ion-item>
+            <ion-checkbox class="item-icon-right" ng-repeat="user in AddCtrl.users | filter: ctrl.userSearch" ng-model="user.isInGroup" ng-disabled="user.wasInGroup">
+                {{user.firstName}} <strong>{{user.lastName}}</strong>
+                <p>{{user.email}} / @{{user.username}}</p>
+                <i ng-show="ctrl.isLoggedIn(user)" class="icon dark-gray ion-ios7-person"></i>
+            </ion-checkbox>
+        </form>
+    </ion-content>
+</ion-modal-view>

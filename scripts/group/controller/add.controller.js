@@ -2,11 +2,12 @@
     'use strict';
 
     angular.module('ws.group')
-        .controller('AddGroupCtrl', function($scope, $ionicPopup, GroupService){
+        .controller('AddGroupCtrl', function($scope, $ionicPopup, GroupService, UserSession){
             var vm = this;
             function _reset() {
                 vm.group = {
-                    name: ''
+                    name: '',
+                    owner: UserSession.getUser()
                 };
                 vm.title = 'new Group';
             }

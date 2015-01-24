@@ -6,7 +6,7 @@
   	<ion-list>
   		<ion-item>
   			<h2>{{ ctrl.group.name }}</h2>
-  			<p>Owner: {{ctrl.group.owner }}</p>
+  			<p>Owner: {{group.owner.firstName}} {{group.owner.lastName}}</p>
   		</ion-item>
   		<ion-item class="item-icon-right" href="#/tabs/groups/{{ctrl.group.id}}/members">
   			<h3>{{ ctrl.members.length }} Members</h3>

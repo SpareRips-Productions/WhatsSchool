@@ -7105,6 +7105,40 @@ a.button {
   border-radius: 50%;
   line-height: 130px; }
 
+.members-add .header-icon-with-badge {
+  width: 130px;
+  height: 130px;
+  text-align: center;
+  margin: 40px auto 25px auto;
+  position: relative; }
+  .members-add .header-icon-with-badge .badge {
+    position: absolute;
+    top: -22px;
+    right: -13px;
+    font-size: 44px;
+    line-height: 65px;
+    border-radius: 50%;
+    min-width: 65px;
+    min-height: 65px;
+    padding: 0; }
+  .members-add .header-icon-with-badge .header-icon {
+    color: #387ef5;
+    color: #387ef5;
+    display: block;
+    font-size: 100px;
+    border: 2px solid #387ef5;
+    border-radius: 50%;
+    line-height: 130px; }
+  .members-add .header-icon-with-badge .header-icon-title {
+    color: #387ef5;
+    position: absolute;
+    bottom: 16px;
+    left: 19px;
+    width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; }
+
 .dark-gray {
   color: #bbbbc0; }
 

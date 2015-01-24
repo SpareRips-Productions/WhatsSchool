@@ -1,6 +1,6 @@
 {
   "name": "WhatsSchool",
-  "app_id": "",
+  "app_id": "be70e69d",
   "gulpStartupTasks": [
     "sass",
     "js",

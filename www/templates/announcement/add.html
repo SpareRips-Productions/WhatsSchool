@@ -13,8 +13,9 @@
         <i class="header-icon icon" ng-class="AddCtrl.announcement.logo"></i>   
         <form class="list" ng-submit="AddCtrl.add()">
             <div class="item">
-                <h2>{{group.name }}</h2>
                 <p>Group</p>
+                {{group.name }}
+                
             </div>
             <label class="item item-input">
                 <input type="text" placeholder="Name" ng-model="AddCtrl.announcement.name">

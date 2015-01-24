@@ -13,3 +13,50 @@
         line-height: 130px;
     }
 }
+
+.members-add {
+
+    .header-icon-with-badge {
+        width: 130px;
+        height: 130px;
+        text-align: center;
+        margin: 40px auto 25px auto;
+        position: relative;
+
+        .badge {
+            position: absolute;
+            top: -22px;
+            right: -13px;
+            font-size: 44px;
+            line-height: 65px;
+            border-radius: 50%;
+            min-width: 65px;
+            min-height: 65px;
+            padding: 0;
+        }
+
+        .header-icon {
+            color: $positive;
+            color: #387ef5;
+            
+            display: block;
+            font-size: 100px;
+            
+            border: 2px solid $positive;
+            border-radius: 50%;
+            line-height: 130px;
+        }
+
+        .header-icon-title {
+            color: $positive;
+            position: absolute;
+            bottom: 16px;
+            left: 19px;
+            width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+    
+}

@@ -11,9 +11,15 @@
     <ion-content>     
         <i class="header-icon icon ion-ios7-chatboxes"></i>   
         <form class="list" ng-submit="AddCtrl.add()">
+            
             <label class="item item-input">
                 <input type="text" placeholder="Group Name" ng-model="AddCtrl.group.name">
             </label>
+            <div class="item">
+                <p>Owner</p>
+                {{AddCtrl.group.owner.firstName }} <strong>{{AddCtrl.group.owner.lastName }}</strong>
+                
+            </div>
             <button class="button button-full button-positive" type="submit">Add</button>
         </form>
     </ion-content>

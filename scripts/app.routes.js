@@ -46,19 +46,10 @@
                     url: '/groups/:id/members',
                     views: {
                         'tab-groups': {
-                            templateUrl: 'templates/user/groupUsers.html',
+                            templateUrl: 'templates/group/members.html',
                             controller: 'GroupMembersCtrl as ctrl'
                         }
                     }
-                })
-                .state('tabs.contacts', {
-                    url: '/contacts',
-                    views: {
-                        'tab-contacts': {
-                            templateUrl: 'templates/user/list.html'
-                        }
-                    }
-                    
                 })
                 .state('tabs.settings', {
                     url: '/settings',

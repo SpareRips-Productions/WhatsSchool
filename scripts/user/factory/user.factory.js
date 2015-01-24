@@ -21,11 +21,51 @@
                         },
                         {
                             id: 2,
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
                             username: 'admin',
                             email: 'admin@hampe.co', 
                             role: USER_ROLES.admin
+                        },
+                        {
+                            id: 3,
+                            firstName: 'Thomas 5', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 4,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 5,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 6,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
+                        },
+                        {
+                            id: 7,
+                            firstName: 'Thomas 4', 
+                            lastName: 'Hampe',     
+                            username: 'thomas',
+                            email: 'thomas@hampe.co', 
+                            role: USER_ROLES.student
                         }
                     ];
                     deferred.resolve(users);
@@ -48,8 +88,8 @@
                         },
                         {
                             id: 2,
-                            firstName: 'Administratore', 
-                            lastName: 'Admin', 
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
                             username: 'admin',
                             email: 'admin@hampe.co', 
                             role: USER_ROLES.admin
@@ -88,7 +128,6 @@
             }
 
             function addUserToGroup(user, groupId) {
-                var userId = (angular.isObject(user)) ? user.id : user;
                 var deferred = $q.defer();
                 $timeout(function(){
                     return deferred.resolve(true);

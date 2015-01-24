@@ -2,7 +2,7 @@
     'use strict';
 
     angular.module('ws.group')
-        .factory('GroupService', function($q, $timeout, UserSession, UserService){
+        .factory('GroupService', function($q, $timeout, UserSession, UserService, USER_ROLES){
             var user = UserSession.user;
 
             function getGroups() {
@@ -13,12 +13,26 @@
                         {
                             id: 1,
                             name: 'Group 1',
-                            owner: 'Owner'
+                            owner: {
+                                id: 2,
+                                firstName: 'Admini', 
+                                lastName: 'Stratore', 
+                                username: 'admin',
+                                email: 'admin@hampe.co', 
+                                role: USER_ROLES.admin
+                            }
                         },
                         {
                             id: 1,
                             name: 'Group 2',
-                            owner: 'Owner 2'
+                            owner: {
+                                id: 2,
+                                firstName: 'Admini', 
+                                lastName: 'Stratore', 
+                                username: 'admin',
+                                email: 'admin@hampe.co', 
+                                role: USER_ROLES.admin
+                            }
                         }
                     ];
                     deferred.resolve(groups);
@@ -33,7 +47,14 @@
                     var group = {
                         id: 1, 
                         name: 'Group 1', 
-                        owner: 'Owner',
+                        owner: {
+                            id: 2,
+                            firstName: 'Admini', 
+                            lastName: 'Stratore', 
+                            username: 'admin',
+                            email: 'admin@hampe.co', 
+                            role: USER_ROLES.admin
+                        },
                         announcements: [
                             {
                                 id: 1,
