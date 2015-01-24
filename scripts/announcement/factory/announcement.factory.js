@@ -79,9 +79,28 @@
                 return deferred.promise;
             }
 
+            function newAnnouncement(announcement){
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(announcement);
+                },1000);
+                return deferred.promise;
+            }
+
+            function deleteAnnouncement(announcement){
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(announcement);
+                },1000);
+                return deferred.promise;   
+            }
+
             return {
                 getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById
+                getAnnouncementById: getAnnouncementById,
+                newAnnouncement: newAnnouncement,
+                deleteAnnouncement: deleteAnnouncement
             };
         });
 })();

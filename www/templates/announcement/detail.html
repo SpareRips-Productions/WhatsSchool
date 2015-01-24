@@ -1,4 +1,7 @@
 <ion-view title="{{ ctrl.group.name }}" class="announcement">
+ <ion-nav-buttons side="right">
+    <button ng-show="Acl.isTeacher()" class="button button-clear button-header-done" ng-click="ctrl.edit()">Edit</button>
+  </ion-nav-buttons>y
   <ion-content>
     
   	<div class="padding info">

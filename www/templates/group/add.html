@@ -1,0 +1,20 @@
+<ion-modal-view ng-controller="AddGroupCtrl as AddCtrl" class="group-add">
+    <ion-header-bar class="bar-positive">
+        <div class="buttons">
+            <button class="button button-clear" ng-click="AddCtrl.cancel()">Cancel</button>
+        </div>
+        <h1 class="title">{{AddCtrl.title}}</h1>
+        <div class="buttons">
+            <button class="button button-clear button-header-done" ng-click="AddCtrl.add()">Add</button>
+        </div>
+    </ion-header-bar>
+    <ion-content>     
+        <i class="header-icon icon ion-ios7-chatboxes"></i>   
+        <form class="list" ng-submit="AddCtrl.add()">
+            <label class="item item-input">
+                <input type="text" placeholder="Group Name" ng-model="AddCtrl.group.name">
+            </label>
+            <button class="button button-full button-positive" type="submit">Add</button>
+        </form>
+    </ion-content>
+</ion-modal-view>

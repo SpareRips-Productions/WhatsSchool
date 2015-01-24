@@ -1,4 +1,7 @@
 <ion-view title="Groups">
+  <ion-nav-buttons side="right">
+    <button ng-show="Acl.isTeacher()" class="button button-icon icon ion-ios7-plus-empty" ng-click="ctrl.openAddGroupModal()"></button>
+  </ion-nav-buttons>
   <ion-content>
   	<ion-list>
   		<ion-item class="item-input-inset">

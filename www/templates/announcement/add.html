@@ -1,0 +1,31 @@
+<ion-modal-view ng-controller="AddAnnouncementCtrl as AddCtrl" class="announcement-add">
+    
+    <ion-header-bar class="bar-positive">
+        <div class="buttons">
+            <button class="button button-clear" ng-click="AddCtrl.cancel()">Cancel</button>
+        </div>
+        <h1 class="title">{{AddCtrl.title}}</h1>
+        <div class="buttons">
+            <button class="button button-clear button-header-done" ng-click="AddCtrl.add()">Add</button>
+        </div>
+    </ion-header-bar>
+    <ion-content>     
+        <i class="header-icon icon" ng-class="AddCtrl.announcement.logo"></i>   
+        <form class="list" ng-submit="AddCtrl.add()">
+            <div class="item">
+                <h2>{{group.name }}</h2>
+                <p>Group</p>
+            </div>
+            <label class="item item-input">
+                <input type="text" placeholder="Name" ng-model="AddCtrl.announcement.name">
+            </label>
+            <label class="item item-input">
+                <textarea placeholder="Description"></textarea>
+            </label>
+            <ion-radio ng-repeat="(key, value) in AddCtrl.types" ng-model="AddCtrl.announcement.logo" ng-value="value.logo">
+                {{value.name}}
+            </ion-radio>
+            <button class="button button-full button-positive" type="submit">Add</button>
+        </form>
+    </ion-content>
+</ion-modal-view>

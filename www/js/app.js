@@ -165,43 +165,235 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 })();
 (function(){
     'use strict';
-
     angular.module('ws.announcement')
-        .controller('AnnouncementDetailCtrl', ["$stateParams", "$ionicScrollDelegate", "GroupService", "AnnouncementService", "UserSession", function($stateParams, $ionicScrollDelegate, GroupService, AnnouncementService, UserSession){
+        .constant('ANNOUNCEMENT_TYPES', {
+            calendar: {name: 'Calendar', logo:'ion-calendar'},
+            clock: {name: 'Time', logo:'ion-clock'},
+            coffee: {name: 'Coffee', logo:'ion-coffee'} 
+        });
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('AddGroupCtrl', ["$scope", "$ionicPopup", "GroupService", function($scope, $ionicPopup, GroupService){
             var vm = this;
-            this.announcement = {};
+            function _reset() {
+                vm.group = {
+                    name: ''
+                };
+                vm.title = 'new Group';
+            }
+            _reset();
+
+            this.add = function(){
+                this.title = 'Please wait...';
+                GroupService.newGroup(vm.group).then(function(group) {
+                    _reset();
+                    if($scope.addGroupModal) {
+                        $scope.addGroupModal.hide();
+                    }
+                }, function (error) {
+                    self.title = 'new Group';
+                    $ionicPopup.alert({
+                        title: 'Ooops :(',
+                        template: error.message || 'Please try again later...'
+                    });
+                });
+            };
+
+            this.cancel = function() {
+                if($scope.addGroupModal) {
+                    $scope.addGroupModal.hide();
+                }
+            };
+
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('GroupDetailCtrl', ["$scope", "$stateParams", "$ionicActionSheet", "$ionicHistory", "$ionicPopup", "$ionicModal", "$ionicListDelegate", "GroupService", "AnnouncementService", "UserService", function(
+                $scope, 
+                $stateParams, 
+                $ionicActionSheet, 
+                $ionicHistory, 
+                $ionicPopup, 
+                $ionicModal, 
+                $ionicListDelegate, 
+                GroupService, 
+                AnnouncementService, 
+                UserService
+            ){
+            var vm = this;
             this.group = {};
 
-            this.newComment = '';
-            var user = UserSession.getUser();
+            this.members = [];
 
+            this.announcements = [];
+
+            this.getMemberNames = function() {
+                var members = [];
+                for(var i = 0; i < this.members.length; i += 1) {
+                    members.push(this.members[i].firstName + ' ' + this.members[i].lastName);
+                }
+                return members;
+            };
+
+            this.delete = function(){
+                var deleteSheet = $ionicActionSheet.show({
+                    destructiveText: 'Delete',
+                    titleText: 'Are you sure?',
+                    cancelText: 'Cancel',
+                    destructiveButtonClicked: function(){
+                        GroupService.deleteGroup(vm.group).then(function(){
+                            deleteSheet();
+                            $ionicHistory.goBack();
+                        }, function(){
+                            deleteSheet();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+            };
+
+            this.edit = function(){
+                var editSheet = $ionicActionSheet.show({
+                    buttons: [
+                       { text: 'Add <strong>Announcement</strong> ' }
+                    ],
+                    destructiveText: 'Delete',
+                    titleText: 'Edit Group',
+                    cancelText: 'Cancel',
+                    destructiveButtonClicked: function(){
+                        editSheet();
+                        vm.delete();
+                    },
+                    buttonClicked: function(index) {
+                        if(index == 0) {
+                            vm.addAnnouncement();
+                        }
+                        return true;
+                    }
+                });
+            };
+
+
+            $ionicModal.fromTemplateUrl('templates/announcement/add.html', {
+                scope: $scope,
+                animation: 'slide-in-up'
+            }).then(function(modal) {
+                $scope.addAnnouncementModal = modal;
+            });
+
+            this.addAnnouncement = function(){
+                if($scope.addAnnouncementModal) {
+                    $scope.addAnnouncementModal.show();
+                } 
+            }
+
+            this.deleteAnnouncement = function(announcement) {
+                var deleteSheet = $ionicActionSheet.show({
+                    destructiveText: 'Delete',
+                    titleText: 'Delete ' + announcement.name + ', are you sure?',
+                    cancelText: 'Cancel',
+                    cancel: function(){
+                        $ionicListDelegate.closeOptionButtons();
+                    },
+                    destructiveButtonClicked: function(){
+                        AnnouncementService.deleteAnnouncement(announcement).then(function(){
+                            deleteSheet();
+                            $ionicListDelegate.closeOptionButtons();
+                        }, function(){
+                            deleteSheet();
+                            $ionicListDelegate.closeOptionButtons();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+
+                return true;
+            }
             
 
             function _reload() {
-                GroupService.getGroupById($stateParams.groupId).then(function(group){
+                GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
+                    $scope.group = group;
                 });
-                AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
-                    vm.announcement = announcement;
-                    $ionicScrollDelegate.scrollBottom();
+                AnnouncementService.getAnnouncementsByGroupId($stateParams.id).then(function(announcements){
+                    vm.announcements = announcements;
+                });
+                UserService.getUsersByGroupId($stateParams.id).then(function(members){
+                    vm.members = members;
+                });
+            }
+            _reload();
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('GroupListCtrl', ["$scope", "$ionicModal", "GroupService", function($scope, $ionicModal, GroupService){
+            var vm = this;
+            this.groups = [];
+
+            this.openAddGroupModal = function(){
+                if($scope.addGroupModal) {
+                    $scope.addGroupModal.show();
+                }                
+            };
+            $ionicModal.fromTemplateUrl('templates/group/add.html', {
+                scope: $scope,
+                animation: 'slide-in-up'
+            }).then(function(modal) {
+                $scope.addGroupModal = modal;
+            });
+
+            function _reload() {
+                GroupService.getGroups().then(function(groups){
+                    vm.groups = groups;
+                });
+            }
+            _reload();
+        }])
+    ;
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.group')
+        .controller('GroupMembersCtrl', ["$stateParams", "GroupService", "UserService", function($stateParams, GroupService, UserService){
+            var vm = this;
+            this.group = {};
+            this.memebrs = [];
+
+            this.deleteUserFromGroup =function(user){
+                UserService.deleteUserFromGroup(user, vm.group.id).then(function(){
+                    _reload();
                 });
             }
 
-            this.isCurrentUserComment = function(comment) {
-                return comment.user.id === user.id;
-            };
-
-            this.sendNewComment = function() {
-                var comment = {user: user, content: this.newComment};
-                if(this.announcement.comments) {
-                    this.announcement.comments.push(comment);
-                    this.newComment = '';
-                }
-                $ionicScrollDelegate.scrollBottom();
-            };
+            function _reload() {
+                GroupService.getGroupById($stateParams.id).then(function(group){
+                    vm.group = group;
+                });
+                UserService.getUsersByGroupId($stateParams.id).then(function(members){
+                    vm.members = members;
+                });
+            }
 
             _reload();
-
         }]);
 })();
 (function(){
@@ -285,9 +477,28 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 return deferred.promise;
             }
 
+            function newAnnouncement(announcement){
+                //TODO: Implement Real Api
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(announcement);
+                },1000);
+                return deferred.promise;
+            }
+
+            function deleteAnnouncement(announcement){
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(announcement);
+                },1000);
+                return deferred.promise;   
+            }
+
             return {
                 getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById
+                getAnnouncementById: getAnnouncementById,
+                newAnnouncement: newAnnouncement,
+                deleteAnnouncement: deleteAnnouncement
             };
         }]);
 })();
@@ -295,90 +506,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupDetailCtrl', ["$stateParams", "GroupService", "AnnouncementService", "UserService", function($stateParams, GroupService, AnnouncementService, UserService){
-            var vm = this;
-            this.group = {};
-
-            this.members = [];
-
-            this.announcements = [];
-
-            this.getMemberNames = function() {
-                var members = [];
-                for(var i = 0; i < this.members.length; i += 1) {
-                    members.push(this.members[i].firstName + ' ' + this.members[i].lastName);
-                }
-                return members;
-            };
-
-            
-
-            function _reload() {
-                GroupService.getGroupById($stateParams.id).then(function(group){
-                    vm.group = group;
-                });
-                AnnouncementService.getAnnouncementsByGroupId($stateParams.id).then(function(announcements){
-                    vm.announcements = announcements;
-                });
-                UserService.getUsersByGroupId($stateParams.id).then(function(members){
-                    vm.members = members;
-                });
-            }
-            _reload();
-
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .controller('GroupListCtrl', ["GroupService", function(GroupService){
-            var vm = this;
-            this.groups = [];
-
-            
-
-            function _reload() {
-                GroupService.getGroups().then(function(groups){
-                    vm.groups = groups;
-                });
-            }
-            _reload();
-        }])
-    ;
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .controller('GroupMembersCtrl', ["$stateParams", "GroupService", "UserService", function($stateParams, GroupService, UserService){
-            var vm = this;
-            this.group = {};
-            this.memebrs = [];
-
-            this.deleteUserFromGroup =function(user){
-                UserService.deleteUserFromGroup(user, vm.group.id).then(function(){
-                    _reload();
-                });
-            }
-
-            function _reload() {
-                GroupService.getGroupById($stateParams.id).then(function(group){
-                    vm.group = group;
-                });
-                UserService.getUsersByGroupId($stateParams.id).then(function(members){
-                    vm.members = members;
-                });
-            }
-
-            _reload();
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.group')
-        .factory('GroupService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
+        .factory('GroupService', ["$q", "$timeout", "UserSession", "UserService", function($q, $timeout, UserSession, UserService){
             var user = UserSession.user;
 
             function getGroups() {
@@ -444,9 +572,39 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 return deferred.promise;
             }
 
+            function newGroup(group) {
+                var deferred = $q.defer();
+                $timeout(function(){
+                    group.id = 3;
+
+                    //after creation add current user to group
+                    UserService.addUserToGroup(UserSession.getUser(), group.id).then(function(){
+                        getGroupById(group.id).then(function(group){
+                            deferred.resolve(group)
+                        });
+                    }, function(error){
+                        deferred.reject(error);
+                    });
+                    
+                }, 1000);
+
+                return deferred.promise;
+            }
+
+            function deleteGroup(group) {
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(group);
+                }, 1000);
+
+                return deferred.promise;
+            }
+
             return {
                 getGroups: getGroups,
-                getGroupById: getGroupById
+                getGroupById: getGroupById,
+                newGroup: newGroup,
+                deleteGroup: deleteGroup
             };
 
         }])
@@ -796,11 +954,21 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 return deferred.promise;
             }
 
+            function addUserToGroup(user, groupId) {
+                var userId = (angular.isObject(user)) ? user.id : user;
+                var deferred = $q.defer();
+                $timeout(function(){
+                    return deferred.resolve(true);
+                }, 1000);
+                return deferred.promise;
+            }
+
             return {
                 getUsers: getUsers,
                 getUsersByGroupId: getUsersByGroupId,
                 getUserById: getUserById,
-                deleteUserFromGroup: deleteUserFromGroup
+                deleteUserFromGroup: deleteUserFromGroup,
+                addUserToGroup: addUserToGroup
             };
         }]);
 })();
@@ -828,5 +996,110 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 localStorageService.set('user', {});
             };
             return this;
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.announcement')
+        .controller('AddAnnouncementCtrl', ["$scope", "$ionicPopup", "ANNOUNCEMENT_TYPES", "AnnouncementService", function($scope, $ionicPopup, ANNOUNCEMENT_TYPES, AnnouncementService){
+            var vm = this;
+            function _reset() {
+                vm.announcement = {
+                    name: '',
+                    description: '',
+                    logo: ANNOUNCEMENT_TYPES.calendar.logo,
+                    group: $scope.group
+                };
+                vm.title = 'new Announcement';
+            }
+            _reset();
+
+            this.add = function(){
+                this.title = 'Please wait...';
+                AnnouncementService.newAnnouncement(vm.Announcement).then(function(Announcement) {
+                    _reset();
+                    if($scope.addAnnouncementModal) {
+                        $scope.addAnnouncementModal.hide();
+                    }
+                }, function (error) {
+                    self.title = 'new Announcement';
+                    $ionicPopup.alert({
+                        title: 'Ooops :(',
+                        template: error.message || 'Please try again later...'
+                    });
+                });
+            };
+
+            this.types = ANNOUNCEMENT_TYPES;
+
+            this.cancel = function() {
+                if($scope.addAnnouncementModal) {
+                    $scope.addAnnouncementModal.hide();
+                }
+            };
+
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.announcement')
+        .controller('AnnouncementDetailCtrl', ["$stateParams", "$ionicScrollDelegate", "$ionicActionSheet", "$ionicHistory", "GroupService", "AnnouncementService", "UserSession", function($stateParams, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory, GroupService, AnnouncementService, UserSession){
+            var vm = this;
+            this.announcement = {};
+            this.group = {};
+
+            this.newComment = '';
+            var user = UserSession.getUser();
+
+            
+
+            function _reload() {
+                GroupService.getGroupById($stateParams.groupId).then(function(group){
+                    vm.group = group;
+                });
+                AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
+                    vm.announcement = announcement;
+                    $ionicScrollDelegate.scrollBottom();
+                });
+            }
+
+            this.edit = function(){
+                var editSheet = $ionicActionSheet.show({
+                    destructiveText: 'Delete',
+                    titleText: 'Edit Announcement',
+                    cancelText: 'Cancel',
+                    destructiveButtonClicked: function(){
+                        AnnouncementService.deleteAnnouncement(vm.announcement).then(function(){
+                            editSheet();
+                            $ionicHistory.goBack();
+                        }, function(){
+                            editSheet();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+            };
+
+            this.isCurrentUserComment = function(comment) {
+                return comment.user.id === user.id;
+            };
+
+            this.sendNewComment = function() {
+                var comment = {user: user, content: this.newComment};
+                if(this.announcement.comments) {
+                    this.announcement.comments.push(comment);
+                    this.newComment = '';
+                }
+                $ionicScrollDelegate.scrollBottom();
+            };
+
+            _reload();
+
         }]);
 })();

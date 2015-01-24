@@ -2,7 +2,7 @@
     'use strict';
 
     angular.module('ws.group')
-        .factory('GroupService', function($q, $timeout, UserSession){
+        .factory('GroupService', function($q, $timeout, UserSession, UserService){
             var user = UserSession.user;
 
             function getGroups() {
@@ -68,9 +68,39 @@
                 return deferred.promise;
             }
 
+            function newGroup(group) {
+                var deferred = $q.defer();
+                $timeout(function(){
+                    group.id = 3;
+
+                    //after creation add current user to group
+                    UserService.addUserToGroup(UserSession.getUser(), group.id).then(function(){
+                        getGroupById(group.id).then(function(group){
+                            deferred.resolve(group)
+                        });
+                    }, function(error){
+                        deferred.reject(error);
+                    });
+                    
+                }, 1000);
+
+                return deferred.promise;
+            }
+
+            function deleteGroup(group) {
+                var deferred = $q.defer();
+                $timeout(function(){
+                    deferred.resolve(group);
+                }, 1000);
+
+                return deferred.promise;
+            }
+
             return {
                 getGroups: getGroups,
-                getGroupById: getGroupById
+                getGroupById: getGroupById,
+                newGroup: newGroup,
+                deleteGroup: deleteGroup
             };
 
         })

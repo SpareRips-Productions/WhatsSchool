@@ -2,7 +2,7 @@
     'use strict';
 
     angular.module('ws.announcement')
-        .controller('AnnouncementDetailCtrl', function($stateParams, $ionicScrollDelegate, GroupService, AnnouncementService, UserSession){
+        .controller('AnnouncementDetailCtrl', function($stateParams, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory, GroupService, AnnouncementService, UserSession){
             var vm = this;
             this.announcement = {};
             this.group = {};
@@ -21,6 +21,26 @@
                     $ionicScrollDelegate.scrollBottom();
                 });
             }
+
+            this.edit = function(){
+                var editSheet = $ionicActionSheet.show({
+                    destructiveText: 'Delete',
+                    titleText: 'Edit Announcement',
+                    cancelText: 'Cancel',
+                    destructiveButtonClicked: function(){
+                        AnnouncementService.deleteAnnouncement(vm.announcement).then(function(){
+                            editSheet();
+                            $ionicHistory.goBack();
+                        }, function(){
+                            editSheet();
+                            $ionicPopup.alert({
+                                title: 'Ooops :(',
+                                template: error.message || 'Please try again later...'
+                            });
+                        });
+                    }
+                });
+            };
 
             this.isCurrentUserComment = function(comment) {
                 return comment.user.id === user.id;

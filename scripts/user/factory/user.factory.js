@@ -87,11 +87,21 @@
                 return deferred.promise;
             }
 
+            function addUserToGroup(user, groupId) {
+                var userId = (angular.isObject(user)) ? user.id : user;
+                var deferred = $q.defer();
+                $timeout(function(){
+                    return deferred.resolve(true);
+                }, 1000);
+                return deferred.promise;
+            }
+
             return {
                 getUsers: getUsers,
                 getUsersByGroupId: getUsersByGroupId,
                 getUserById: getUserById,
-                deleteUserFromGroup: deleteUserFromGroup
+                deleteUserFromGroup: deleteUserFromGroup,
+                addUserToGroup: addUserToGroup
             };
         });
 })();
