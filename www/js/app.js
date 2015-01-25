@@ -35,7 +35,11 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 (function(){
     'use strict';
 
-    angular.module('ws.settings', ['ionic', 'ui.gravatar', 'ws.user']);
+    angular.module('ws.settings', ['ionic', 'ui.gravatar', 'ws.user'])
+        .run(["$rootScope", "$timeout", "Theme", "SETTINGS_EVENTS", function($rootScope, $timeout, Theme, SETTINGS_EVENTS){
+            $rootScope.$broadcast(SETTINGS_EVENTS.CHECK_THEME);
+        }])
+    ;
 })();
 (function(){
     'use strict';
@@ -807,11 +811,47 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     ;
 })();
 (function(){
+    angular.module('ws.settings')
+        .constant('SETTINGS', {
+            DARK_MODE: 'darkMode',
+            AUTO_DARK_MODE: 'autoDarkMode'
+        })
+        .constant('THEMES', {
+            DARK: 'dark-mode',
+            LIGHT: 'light-mode'
+        })
+        .constant('SETTINGS_EVENTS', {
+            'SETTINGS_CHANGED': 'settings-changed',
+            'CHECK_THEME': 'check_theme'
+        });
+})();
+(function(){
     'use strict';
 
     angular.module('ws.settings')
-        .controller('SettingsCtrl', ["$scope", "$state", "Auth", "UserSession", function($scope, $state, Auth, UserSession){
+        .controller('SettingsCtrl', ["$scope", "$state", "Auth", "UserSession", "WsSettings", "SETTINGS", function($scope, $state, Auth, UserSession, WsSettings,SETTINGS){
             var vm = this;
+            var unBindSettings;
+            var unBindUser;            
+            $scope.SETTINGS = SETTINGS;
+
+            function _unBind() {
+                if(unBindSettings) {
+                    unBindSettings();
+                    unBindSettings = null;
+                }
+                if(unBindUser) {
+                    unBindUser();
+                    unBindUser = null;
+                }
+            }
+
+            function _bind() {
+
+                unBindSettings = WsSettings.bind($scope);
+                unBindUser = UserSession.bindUser($scope);
+                $scope.settings = $scope[WsSettings.getSettingsKey()];
+            }            
 
             this.logout = function() {
                 Auth.logout();
@@ -824,7 +864,126 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     $scope.settingsModal.hide();
                 }
             };
-            this.user = UserSession.getUser();
+
+            // Execute action on hide modal
+            $scope.$on('modal.hidden', _unBind);
+            // Execute action on remove modal
+            $scope.$on('modal.removed', _unBind);
+            // Execute action on show modal
+            $scope.$on('modal.shown', _bind);
+
+            $scope.$on('$destroy', function() {
+                if($scope.settingsModal) {
+                    $scope.settingsModal.remove();
+                }
+            });
+
+
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.settings')
+        .service('WsSettings', ["$rootScope", "localStorageService", "UserSession", "SETTINGS", "SETTINGS_EVENTS", function($rootScope, localStorageService, UserSession, SETTINGS, SETTINGS_EVENTS){
+            var user;
+            var settingsKey;
+            var settings;
+            var self = this;
+
+            function _initSettings(){
+                user = UserSession.getUser()
+                settingsKey = 'settings_' + ((user.username) ? user.username : 'general');
+                settings = localStorageService.get(settingsKey) || null;
+                console.log(settings);
+                if(settings == undefined) {
+                    var darkMode = SETTINGS.DARK_MODE;
+                    var autoDark = SETTINGS.AUTO_DARK_MODE;
+                    var settings = {};
+                    settings[darkMode] = false;
+                    settings[autoDark] = true;
+                    localStorageService.set(settingsKey, settings);
+                }else {
+                    $rootScope.$broadcast(SETTINGS_EVENTS.SETTINGS_CHANGED);
+                }
+
+                return settings;
+            }
+
+            settings = _initSettings();
+
+            $rootScope.$on('LocalStorageModule.notification.setitem', function(event, data){
+                if(data.key === settingsKey) {
+                    settings = localStorageService.get(settingsKey);
+                    if(settings) {
+                        $rootScope.$broadcast(SETTINGS_EVENTS.SETTINGS_CHANGED);
+                    }
+                }
+            });
+
+            $rootScope.$on('ws.user.login', function(){
+                _initSettings();
+            });
+
+            $rootScope.$on('ws.user.logout', function(){
+               _initSettings();
+            });
+
+            this.get = function(key) {
+                return localStorageService.get(settingsKey)[key];
+            }
+
+            this.set = function(key, value) {
+                settings[key] = value;
+                localStorageService.set(settingsKey, settings);
+                return this;
+            }
+
+            this.getSettingsKey = function() {
+                return settingsKey;   
+            }
+
+            this.bind = function(scope) {
+                return localStorageService.bind(scope, settingsKey);
+            };
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.settings')
+        .factory('Theme', ["$document", "$rootScope", "WsSettings", "SETTINGS", "THEMES", "SETTINGS_EVENTS", function($document, $rootScope, WsSettings, SETTINGS, THEMES, SETTINGS_EVENTS){
+            var self = this;
+            this.checkTheme = function() {
+                var body = angular.element($document[0].body);
+                var theme = self.getThemeClass();
+                if(!body.hasClass(theme)){
+                    body.removeClass(THEMES.LIGHT);
+                    body.removeClass(THEMES.DARK);
+                    body.addClass(theme);
+                }
+            }
+
+            this.getThemeClass = function() {
+                var isDarkMode = WsSettings.get(SETTINGS.DARK_MODE);
+                //check if auto dark mode
+                if(!isDarkMode) {
+
+                }
+
+                return (isDarkMode) ? THEMES.DARK : THEMES.LIGHT;
+            }
+
+            $rootScope.$on(SETTINGS_EVENTS.SETTINGS_CHANGED, function(event, currentSettings){
+                self.checkTheme();
+            });
+
+            $rootScope.$on(SETTINGS_EVENTS.CHECK_THEME, function(){
+                self.checkTheme();
+            });
+
+            return this;
+
         }]);
 })();
 (function(){
@@ -1006,7 +1165,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.user')
-        .factory('Auth', ["$http", "$q", "$timeout", "$ionicHistory", "UserSession", "USER_ROLES", function ($http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
+        .factory('Auth', ["$rootScope", "$http", "$q", "$timeout", "$ionicHistory", "UserSession", "USER_ROLES", function ($rootScope, $http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
             var authService = {};
 
             authService.login = function (credentials) {
@@ -1042,6 +1201,10 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     }
                 }, 300);
 
+                deferred.promise.then(function(user){
+                    $rootScope.$broadcast('ws.user.login', user);
+                });
+
                 return deferred.promise;
             };
 
@@ -1053,7 +1216,9 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 
             authService.logout = function(){
                 $ionicHistory.clearCache();
-                return UserSession.destroy();
+                var result = UserSession.destroy()
+                $rootScope.$broadcast('ws.user.logout');
+                return result;
             };
 
             authService.isAuthenticated = function () {
@@ -1220,7 +1385,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.user')
-        .service('UserSession', ["localStorageService", function(localStorageService){
+        .service('UserSession', ["$rootScope", "localStorageService", function($rootScope, localStorageService){
             var _userProps = ['firstName', 'lastName', 'email', 'username', 'role'];
             var user;
             this.getUser = function() {
@@ -1229,6 +1394,17 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 }
                 return user;
             };
+
+            $rootScope.$on('LocalStorageModule.notification.setitem', function(event, data){
+                if(data.key === 'user') {
+                    user = localStorageService.get('user');
+                }
+            });
+
+
+            this.bindUser = function(scope) {
+                return localStorageService.bind(scope, 'user');
+            }
 
             this.create = function (user) {
                 this.destroy();

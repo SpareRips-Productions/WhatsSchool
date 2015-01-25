@@ -23,6 +23,9 @@
             <label class="item item-input">
                 <textarea placeholder="Description"></textarea>
             </label>
+            <ion-item class="item-divider">
+                Symbol
+            </ion-item>
             <ion-radio ng-repeat="(key, value) in AddCtrl.types" ng-model="AddCtrl.announcement.logo" ng-value="value.logo">
                 {{value.name}}
             </ion-radio>

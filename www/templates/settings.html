@@ -9,9 +9,18 @@
         <ion-list>
             <ion-item class="item-avatar">
                 <img gravatar-src="'{{SettingsCtrl.user.email}}'" />
-                <h3>{{SettingsCtrl.user.firstName}} {{SettingsCtrl.user.lastName}}</h3>
-                <p>{{SettingsCtrl.user.email}} / @{{SettingsCtrl.user.username}}</p>
+                <h3>{{user.firstName}} {{user.lastName}}</h3>
+                <p>{{user.email}} / @{{user.username}}</p>
             </ion-item>
+            <ion-item class="item-divider">
+                Settings
+            </ion-item>
+            <ion-toggle ng-model="settings[SETTINGS.DARK_MODE]" toggle-class="toggle-positive">
+                Dark Mode
+            </ion-toggle>
+            <ion-toggle ng-model="settings[SETTINGS.AUTO_DARK_MODE]" ng-show="!settings[SETTINGS.DARK_MODE]" toggle-class="toggle-positive">
+                Auto Dark Mode (<small>19:00 - 07:00</small>)
+            </ion-toggle>
         </ion-list>
         <button class="button button-full button-light button-logout" ng-click="SettingsCtrl.logout()">Logout</button>
       </ion-content>

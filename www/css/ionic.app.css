@@ -16,6 +16,91 @@
 .ws .members-add .header-icon-with-badge .header-icon-title {
   font-family: 'lobster_regular', 'Helvetica Neue', Roboto, sans-serif; }
 
+.ws.dark-mode {
+  background-color: #444; }
+  .ws.dark-mode .pane, .ws.dark-mode .view {
+    background-color: #444; }
+  .ws.dark-mode .item {
+    background-color: #444;
+    border-color: #2b2b2b;
+    color: #ddd; }
+  .ws.dark-mode .item-divider {
+    background-color: #2b2b2b;
+    color: #ddd; }
+  .ws.dark-mode .item-complex .item-content, .ws.dark-mode .item-radio .item-content {
+    background-color: #444; }
+  .ws.dark-mode h1, .ws.dark-mode h2, .ws.dark-mode h3, .ws.dark-mode h4, .ws.dark-mode h5, .ws.dark-mode h6, .ws.dark-mode .h1, .ws.dark-mode .h2, .ws.dark-mode .h3, .ws.dark-mode .h4, .ws.dark-mode .h5, .ws.dark-mode .h6 {
+    color: #ddd; }
+  .ws.dark-mode .item p {
+    color: #ddd; }
+  .ws.dark-mode .item-input-wrapper {
+    background-color: #2b2b2b; }
+  .ws.dark-mode .input-label {
+    color: #ddd; }
+  .ws.dark-mode .item-select select {
+    background-color: #444;
+    color: #ddd; }
+  .ws.dark-mode textarea, .ws.dark-mode input[type="text"], .ws.dark-mode input[type="password"], .ws.dark-mode input[type="datetime"], .ws.dark-mode input[type="datetime-local"], .ws.dark-mode input[type="date"], .ws.dark-mode input[type="month"], .ws.dark-mode input[type="time"], .ws.dark-mode input[type="week"], .ws.dark-mode input[type="number"], .ws.dark-mode input[type="email"], .ws.dark-mode input[type="url"], .ws.dark-mode input[type="search"], .ws.dark-mode input[type="tel"], .ws.dark-mode input[type="color"] {
+    color: #ddd; }
+  .ws.dark-mode .bar.bar-positive .title, .ws.dark-mode .bar-positive .button {
+    color: #fff; }
+  .ws.dark-mode .settings {
+    background-color: #5e5e5e; }
+    .ws.dark-mode .settings .button.button-light {
+      background-color: #444;
+      border-color: #2b2b2b; }
+  .ws.dark-mode .dark-gray {
+    color: #5e5e5e; }
+  .ws.dark-mode .modal {
+    background-color: #5e5e5e; }
+  .ws.dark-mode .members-add .header-icon-with-badge .header-icon {
+    border-color: #fff; }
+  .ws.dark-mode .members-add .header-icon-with-badge .header-icon-title {
+    color: #fff; }
+  .ws.dark-mode .group-add .header-icon {
+    border-color: #fff; }
+  .ws.dark-mode .checkbox input:disabled:checked:before, .ws.dark-mode .checkbox input:disabled:checked + .checkbox-icon:before {
+    background-color: #444; }
+  .ws.dark-mode .checkbox input:disabled:before, .ws.dark-mode .checkbox input:disabled + .checkbox-icon:before {
+    border-color: #ddd;
+    border-width: 1px; }
+  .ws.dark-mode .checkbox input:before, .ws.dark-mode .checkbox-icon:before {
+    background-color: #444;
+    border-color: #ddd; }
+  .ws.dark-mode .action-sheet-group {
+    background-color: #444; }
+  .ws.dark-mode .action-sheet-title {
+    color: #ddd; }
+  .ws.dark-mode .action-sheet-group .button {
+    border-color: #2b2b2b; }
+    .ws.dark-mode .action-sheet-group .button:hover {
+      color: #7f2525; }
+    .ws.dark-mode .action-sheet-group .button.activated {
+      background-color: #2b2b2b; }
+  .ws.dark-mode .announcement.pane {
+    background-color: #5e5e5e; }
+  .ws.dark-mode .announcement .info {
+    background-color: #444;
+    color: #ddd;
+    border-color: #2b2b2b; }
+  .ws.dark-mode .announcement .chat .list .item .chat-message {
+    background-color: #2b2b2b; }
+    .ws.dark-mode .announcement .chat .list .item .chat-message:before {
+      border-right-color: #2b2b2b; }
+  .ws.dark-mode .announcement .chat .list .item.current-user .chat-message .user {
+    color: #ddd; }
+  .ws.dark-mode .announcement .chat .list .item.current-user .chat-message:before {
+    border-left-color: #2b2b2b; }
+  .ws.dark-mode .bar.bar-light {
+    background-color: #444;
+    border-color: #5e5e5e; }
+  .ws.dark-mode .toggle .track {
+    background-color: #5e5e5e;
+    border-color: #5e5e5e; }
+  .ws.dark-mode .toggle .handle, .ws.dark-mode .toggle input:checked + .track .handle {
+    background-color: #ddd;
+    background-color: #2b2b2b; }
+
 /*!
   Ionicons, v1.5.2
   Created by Ben Sperry for the Ionic Framework, http://ionicons.com/
@@ -7016,16 +7101,6 @@ a.button {
   opacity: 0;
   -webkit-transition-duration: 0s;
   transition-duration: 0s; }
-
-.platform-android .bar-header {
-  background-image: none;
-  border-bottom-width: 0; }
-
-.keyboard-open .tabs {
-  display: none !important; }
-
-.keyboard-open .has-tabs {
-  bottom: 0 !important; }
 
 .welcome {
   /*color: #fff;

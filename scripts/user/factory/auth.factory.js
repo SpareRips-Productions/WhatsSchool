@@ -2,7 +2,7 @@
     'use strict';
 
     angular.module('ws.user')
-        .factory('Auth', function ($http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
+        .factory('Auth', function ($rootScope, $http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
             var authService = {};
 
             authService.login = function (credentials) {
@@ -38,6 +38,10 @@
                     }
                 }, 300);
 
+                deferred.promise.then(function(user){
+                    $rootScope.$broadcast('ws.user.login', user);
+                });
+
                 return deferred.promise;
             };
 
@@ -49,7 +53,9 @@
 
             authService.logout = function(){
                 $ionicHistory.clearCache();
-                return UserSession.destroy();
+                var result = UserSession.destroy()
+                $rootScope.$broadcast('ws.user.logout');
+                return result;
             };
 
             authService.isAuthenticated = function () {

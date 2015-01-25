@@ -20,3 +20,158 @@ $lobster:  'lobster_regular', 'Helvetica Neue', Roboto, sans-serif;
     }
 
 } 
+
+//Dark Mode
+
+.ws.dark-mode{
+    $lightInDarkMode: #ddd;
+    background-color: $dark;
+
+    .pane, .view {
+        background-color: $dark;
+    }
+    .item {
+        background-color: $dark;
+        border-color: darken($dark, 10%);
+        color: $lightInDarkMode;
+    }
+    .item-divider {
+        background-color: darken($dark, 10%);
+        color: $lightInDarkMode;
+    }
+
+    .item-complex .item-content, .item-radio .item-content {
+        background-color: $dark;
+
+    }
+    h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+        color: $lightInDarkMode;
+    }
+    .item p {
+        color: $lightInDarkMode;
+    }
+    .item-input-wrapper {
+        background-color: darken($dark, 10%);
+    }
+    .input-label {
+        color: $lightInDarkMode;
+    }
+
+    .item-select select {
+        background-color: $dark;
+        color: $lightInDarkMode;
+    }
+
+    textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"]{
+        color: $lightInDarkMode;
+    }
+
+    .bar.bar-positive .title, .bar-positive .button {
+        color: #fff;
+    }
+
+    .settings {
+        background-color: lighten($dark, 10%);
+        .button.button-light {
+            background-color: $dark;
+            border-color: darken($dark, 10%);
+        }
+    }
+
+    .dark-gray {
+        color: lighten($dark, 10%);
+    }
+
+    .modal {
+        background-color: lighten($dark, 10%);
+    }
+
+    .members-add .header-icon-with-badge .header-icon {
+        border-color: #fff;
+    }
+    .members-add .header-icon-with-badge .header-icon-title{
+        color: #fff;
+    } 
+
+    .group-add .header-icon {
+        border-color: #fff;
+    }
+
+    .checkbox input:disabled:checked:before, .checkbox input:disabled:checked + .checkbox-icon:before {
+        background-color: $dark;
+    }
+    .checkbox input:disabled:before, .checkbox input:disabled + .checkbox-icon:before{
+        border-color: $lightInDarkMode;
+        border-width: 1px;
+    }
+
+    .checkbox input:before, .checkbox-icon:before {
+        background-color: $dark;
+        border-color: $lightInDarkMode;
+    }
+
+    .action-sheet-group {
+        background-color: $dark;
+    }
+
+    .action-sheet-title {
+        color: $lightInDarkMode;
+    }
+
+    .action-sheet-group .button {
+        border-color: darken($dark, 10%);
+        &:hover {
+            color: darken($positive, 10%);
+        }
+        &.activated {
+            background-color: darken($dark, 10%);
+        }
+    }
+
+    .announcement {
+        &.pane {
+            background-color: lighten($dark, 10%);
+        }
+        .info {
+            background-color: $dark;
+            color: $lightInDarkMode;
+            border-color: darken($dark, 10%);
+        }
+        .chat .list .item .chat-message {
+            background-color: darken($dark, 10%);
+            &:before {
+                border-right-color: darken($dark, 10%);
+            }
+        }
+        .chat .list .item.current-user .chat-message {
+
+            .user {
+                color: $lightInDarkMode;
+            }
+            &:before {
+                border-left-color: darken($dark, 10%);
+            }
+        }
+    }
+
+    .bar.bar-light {
+        background-color: $dark;
+        border-color: lighten($dark, 10%);
+    }
+
+    .welcome.pane {
+        //background-color: lighten($dark, 10%);
+    }
+
+    .toggle .track {
+        background-color: lighten($dark, 10%);
+        border-color: lighten($dark, 10%);
+    }
+    .toggle .handle, .toggle input:checked + .track .handle {
+        background-color: $lightInDarkMode;
+        background-color: darken($dark, 10%);
+        //background-color: $dark;
+    }
+
+}
+
