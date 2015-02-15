@@ -2,11 +2,23 @@
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupMembersCtrl', function($scope, $stateParams, $ionicActionSheet, $ionicListDelegate, $ionicModal, $ionicPopup, GroupService, UserService, UserSession){
+        .controller('GroupMembersCtrl', function(
+                $rootScope, 
+                $scope, 
+                $stateParams, 
+                $ionicActionSheet, 
+                $ionicListDelegate, 
+                $ionicModal, 
+                $ionicPopup, 
+                GroupService, 
+                UserService, 
+                UserSession,
+                RELOAD
+            ){
             var vm = this;
             var currentUser = UserSession.getUser();
             this.group = {};
-            this.memebrs = [];
+            this.members = [];
 
             this.isLoggedIn = function(user){
                 return user.id === currentUser.id;
@@ -52,16 +64,25 @@
                 } 
             }
 
-
-            function _reload() {
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
                 });
+            }
+
+            function _reloadMembers() {
                 UserService.getUsersByGroupId($stateParams.id).then(function(members){
                     vm.members = members;
                 });
             }
 
+            function _reload() {
+                _reloadGroup();
+                _reloadMembers();
+            }
             _reload();
+
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
+            $rootScope.$on(RELOAD.USER, _reloadMembers);
         });
 })();

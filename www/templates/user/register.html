@@ -26,7 +26,20 @@
             <label class="item item-input">
                 <input type="password" placeholder="Password" ng-model="ctrl.credentials.password">
             </label>
+            <ion-item class="item-divider">
+                Role
+            </ion-item>
+            <ion-radio ng-model="ctrl.credentials.role" ng-value="ctrl.roles.student">
+                Student
+            </ion-radio>
+            <ion-radio ng-model="ctrl.credentials.role" ng-value="ctrl.roles.teacher">
+                Teacher
+            </ion-radio>
+            <ion-radio ng-model="ctrl.credentials.role" ng-value="ctrl.roles.admin">
+                Admin
+            </ion-radio>
             <button class="button button-full button-dark" type="submit">Register</button>
+            {{ ctrl.credentials }}
         </form>
     </ion-content>
 </ion-modal-view>

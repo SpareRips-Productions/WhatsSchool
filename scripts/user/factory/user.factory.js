@@ -2,141 +2,52 @@
     'use strict';
 
      angular.module('ws.group')
-        .factory('UserService', function($q, $timeout, UserSession, USER_ROLES){
-
-            var user = UserSession.user;
+        .factory('UserService', function($rootScope, $sailsPromised, RELOAD){
 
             function getUsers() {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var users = [
-                        {
-                            id: 1,
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        },
-                        {
-                            id: 3,
-                            firstName: 'Thomas 5', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 4,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 5,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 6,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 7,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        }
-                    ];
-                    deferred.resolve(users);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get('/users');
             }
 
             function getUsersByGroupId(groupId) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var users = [
-                        {
-                            id: 1,
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        }
-                    ];
-                    deferred.resolve(users);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get('/groups/' + groupId + '/members')
+            }
+
+            function newUser(user) {
+                return $sailsPromised.post('/users', user).then(function(newUser){
+                    $rootScope.$broadcast(RELOAD.USER, {verb: 'created', data: newUser});
+                    return newUser;
+                });
+            }
+
+            function deleteUser(user) {
+                return $sailsPromised.delete('/users/' + user.id).then(function(deletedUser){
+                    $rootScope.$broadcast(RELOAD.USER, {verb: 'deleted', data: deletedUser});
+                    return deletedUser;
+                });
             }
 
             function getUserById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var user = {
-                        id: 3,
-                        firstName: 'Thomas', 
-                        lastName: 'Hampe',     
-                        username: 'thomas',
-                        email: 'thomas@hampe.co', 
-                        role: USER_ROLES.student
-                    };
-
-                    deferred.resolve(user);    
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get('/users/'+id);
             }
 
             function deleteUserFromGroup(user, groupId) {
-                var userId = (angular.isObject(user)) ? user.id : user;
-                var deferred = $q.defer();
-                $timeout(function(){
-                    return deferred.resolve(true);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.delete('/groups/'+ groupId + '/members/' + user.id).then(function(deletedUser){
+                    $rootScope.$broadcast(RELOAD.USER);
+                    return deletedUser;
+                });;
             }
 
             function addUserToGroup(user, groupId) {
-                var deferred = $q.defer();
-                $timeout(function(){
-                    return deferred.resolve(true);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.post('/groups/'+ groupId + '/members/' + user.id).then(function(newUser){
+                    $rootScope.$broadcast(RELOAD.USER, {verb: 'created', data: newUser});
+                    return newUser;
+                });
             }
 
             return {
                 getUsers: getUsers,
+                newUser: newUser,
+                deleteUser: deleteUser,
                 getUsersByGroupId: getUsersByGroupId,
                 getUserById: getUserById,
                 deleteUserFromGroup: deleteUserFromGroup,

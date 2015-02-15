@@ -9,12 +9,12 @@
         {{ ctrl.announcement.description }}
     </div>
     <ion-list class="chat">
-        <ion-item ng-repeat="comment in ctrl.announcement.comments" class="item-avatar" ng-class="{'current-user': ctrl.isCurrentUserComment(comment)}">
+        <ion-item ng-repeat="comment in ctrl.comments" class="item-avatar" ng-class="{'current-user': ctrl.isCurrentUserComment(comment)}">
             <img gravatar-src="'{{comment.user.email}}'" />
             <div class="chat-message">
               <span class="user">{{comment.user.firstName}} {{comment.user.lastName}}</span>
               <div class="message">
-                {{comment.content}}
+                {{comment.text}}
               </div>
             </div>
         </ion-item>

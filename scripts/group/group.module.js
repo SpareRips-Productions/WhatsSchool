@@ -1,5 +1,5 @@
 (function() {
     'use strict';
 
-    angular.module('ws.group', ['ionic', 'ws.announcement', 'ws.user']);
+    angular.module('ws.group', ['ionic', 'ngSails', 'ws.announcement', 'ws.user', 'ws.api']);
 })();

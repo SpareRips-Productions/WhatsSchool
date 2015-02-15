@@ -3,7 +3,7 @@
     angular.module('ws.user')
         .controller('LoginCtrl', function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth){
             this.credentials = {
-                username: '',
+                email: '',
                 password: ''
             };
             this.title = 'Login';
@@ -13,7 +13,7 @@
                 Auth.login(this.credentials).then(function(user) {
                     self.title = 'Login';
                     self.credentials = {
-                        username: '',
+                        email: '',
                         password: ''
                     };
                     if($scope.loginModal) {

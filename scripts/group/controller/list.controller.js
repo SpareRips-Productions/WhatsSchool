@@ -2,7 +2,19 @@
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupListCtrl', function($scope, $ionicModal, $ionicActionSheet, $ionicPopup, $ionicListDelegate, GroupService, UserSession){
+        .controller('GroupListCtrl', function(
+            $rootScope,
+            $scope, 
+            $ionicModal, 
+            $ionicActionSheet, 
+            $ionicPopup, 
+            $ionicListDelegate, 
+            $sails, 
+            GroupService,
+            UserService, 
+            UserSession,
+            RELOAD
+        ){
             var vm = this;
             this.groups = [];
             this.openAddGroupModal = function(){
@@ -45,6 +57,7 @@
                         GroupService.deleteGroup(group).then(function(){
                             deleteSheet();
                             $ionicListDelegate.closeOptionButtons();
+                            $rootScope.$broadcast(RELOAD.GROUP, {verb: 'deleted', data: group});
                         }, function(){
                             deleteSheet();
                             $ionicPopup.alert({
@@ -60,8 +73,9 @@
                 GroupService.getGroups().then(function(groups){
                     vm.groups = groups;
                 });
-            }
+            };
             _reload();
+            $rootScope.$on(RELOAD.GROUP, _reload);
         })
     ;
 })();

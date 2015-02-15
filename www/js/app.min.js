@@ -2,7 +2,19 @@
 
 'use strict';
 
-angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravatar', 'ws.group', 'ws.announcement', 'ws.user', 'ws.settings'])
+angular.module('ws.app', [
+      'ionic', 
+      'ngCordova', 
+      'LocalStorageModule', 
+      'ngSails',
+      'ui.gravatar', 
+      'ws.api',
+      'ws.group', 
+      'ws.announcement', 
+      'ws.user', 
+      'ws.settings',
+      'ws.comment'
+    ])
     .config(["$ionicConfigProvider", function($ionicConfigProvider) {
       $ionicConfigProvider.platform.android.backButton.icon('ion-ios7-arrow-back');
     }])
@@ -27,10 +39,18 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 
     angular.module('ws.announcement', ['ionic', 'ws.user']);
 })();
+(function(){
+    'use strict';
+    angular.module('ws.api', ['ngSails']);
+})();
+(function() {
+    'use strict';
+    angular.module('ws.comment', ['ws.api']);
+})();
 (function() {
     'use strict';
 
-    angular.module('ws.group', ['ionic', 'ws.announcement', 'ws.user']);
+    angular.module('ws.group', ['ionic', 'ngSails', 'ws.announcement', 'ws.user', 'ws.api']);
 })();
 (function(){
     'use strict';
@@ -43,7 +63,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 })();
 (function(){
     'use strict';
-    angular.module('ws.user', ['ionic', 'LocalStorageModule']);
+    angular.module('ws.user', ['ionic', 'LocalStorageModule', 'ws.api']);
 })();
 (function(){
     'use strict';
@@ -56,7 +76,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     abstract: true,
                     templateUrl: 'templates/tabs.html',
                     data: {
-                        authorizedRoles: [USER_ROLES.student, USER_ROLES.admin]
+                        authorizedRoles: [USER_ROLES.student, USER_ROLES.teacher, USER_ROLES.admin]
                     }
                 })
                 .state('tabs.groups', {
@@ -94,7 +114,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     views: {
                         'tab-groups': {
                             templateUrl: 'templates/group/members.html',
-                            controller: 'GroupMembersCtrl as ctrl'
+                            controller: 'GroupMembersCtrl as MembersCtrl'
                         }
                     }
                 })
@@ -134,8 +154,89 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 
         // Force protocol
         gravatarServiceProvider.protocol = 'https';
+    }]).config(['$sailsProvider', function ($sailsProvider) {
+        $sailsProvider.url = 'http://localhost:1337';
     }]);
+;
 })();
+(function (angular, io) {
+'use strict'/*global angular */
+angular.module('ngSails', ['ng']);
+
+/*jslint sloppy:true*/
+/*global angular, io */
+angular.module('ngSails').provider('$sails', function () {
+    var provider = this,
+        httpVerbs = ['get', 'post', 'put', 'delete'],
+        eventNames = ['on', 'once'];
+
+    this.url = undefined;
+    this.interceptors = [];
+
+    this.$get = ['$q', '$timeout', function ($q, $timeout) {
+        var socket = io.sails.connect(provider.url),
+            defer = function () {
+                var deferred = $q.defer(),
+                    promise = deferred.promise;
+
+                promise.success = function (fn) {
+                    promise.then(fn);
+                    return promise;
+                };
+
+                promise.error = function (fn) {
+                    promise.then(null, fn);
+                    return promise;
+                };
+
+                return deferred;
+            },
+            resolveOrReject = function (deferred, data) {
+                // Make sure what is passed is an object that has a status and if that status is no 2xx, reject.
+                if (data && angular.isObject(data) && data.status && Math.floor(data.status / 100) !== 2) {
+                    deferred.reject(data);
+                } else {
+                    deferred.resolve(data);
+                }
+            },
+            angularify = function (cb, data) {
+                $timeout(function () {
+                    cb(data);
+                });
+            },
+            promisify = function (methodName) {
+                socket['legacy_' + methodName] = socket[methodName];
+                socket[methodName] = function (url, data, cb) {
+                    var deferred = defer();
+                    if (cb === undefined && angular.isFunction(data)) {
+                        cb = data;
+                        data = null;
+                    }
+                    deferred.promise.then(cb);
+                    socket['legacy_' + methodName](url, data, function (result) {
+                        resolveOrReject(deferred, result);
+                    });
+                    return deferred.promise;
+                };
+            },
+            wrapEvent = function (eventName) {
+                socket['legacy_' + eventName] = socket[eventName];
+                socket[eventName] = function (event, cb) {
+                    if (cb !== null && angular.isFunction(cb)) {
+                        socket['legacy_' + eventName](event, function (result) {
+                            angularify(cb, result);
+                        });
+                    }
+                };
+            };
+
+        angular.forEach(httpVerbs, promisify);
+        angular.forEach(eventNames, wrapEvent);
+
+        return socket;
+    }];
+});
+}(angular, io));
 (function(){
     'use strict';
     angular.module('ws.user')
@@ -171,28 +272,73 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.announcement')
-        .controller('AddAnnouncementCtrl', ["$scope", "$ionicPopup", "ANNOUNCEMENT_TYPES", "AnnouncementService", function($scope, $ionicPopup, ANNOUNCEMENT_TYPES, AnnouncementService){
+        .factory('AnnouncementService', ["$rootScope", "$sailsPromised", "RELOAD", function($rootScope, $sailsPromised, RELOAD){
+
+            function getAnnouncementsByGroupId(groupId) {
+                return $sailsPromised.get('/groups/'+groupId+'/announcements');   
+            }
+
+            function getAnnouncementById(id) {
+                return $sailsPromised.get('/announcements/'+id);    
+            }
+
+            function newAnnouncement(announcement){
+                return $sailsPromised.post('/announcements', announcement).then(function(newAnnouncement){
+                    $rootScope.$broadcast(RELOAD.ANNOUNCEMENT, {verb: 'created', data: newAnnouncement});
+                    return newAnnouncement;
+                });
+            }
+
+            function deleteAnnouncement(announcement){
+                return $sailsPromised.delete('/announcements/' + announcement.id).then(function(deletedAnnouncement){
+                    $rootScope.$broadcast(RELOAD.ANNOUNCEMENT, {verb: 'deleted', data: deletedAnnouncement});
+                    return deletedAnnouncement;
+                });  
+            }
+
+            return {
+                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
+                getAnnouncementById: getAnnouncementById,
+                newAnnouncement: newAnnouncement,
+                deleteAnnouncement: deleteAnnouncement
+            };
+        }]);
+})();
+(function(){
+    'use strict';
+
+    angular.module('ws.announcement')
+        .controller('AddAnnouncementCtrl', ["$rootScope", "$scope", "$ionicPopup", "$stateParams", "ANNOUNCEMENT_TYPES", "AnnouncementService", "GroupService", "RELOAD", function($rootScope, $scope, $ionicPopup, $stateParams, ANNOUNCEMENT_TYPES, AnnouncementService, GroupService, RELOAD){
             var vm = this;
             function _reset() {
                 vm.announcement = {
                     name: '',
                     description: '',
                     logo: ANNOUNCEMENT_TYPES.calendar.logo,
-                    group: $scope.group
+                    group: {} 
                 };
                 vm.title = 'new Announcement';
-            }
+            };
             _reset();
+
+            function _reloadGroup() {
+                GroupService.getGroupById($stateParams.id).then(function(group){
+                    vm.announcement.group = group;
+                });
+            };
+            _reloadGroup();
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
 
             this.add = function(){
                 this.title = 'Please wait...';
-                AnnouncementService.newAnnouncement(vm.Announcement).then(function(Announcement) {
+                AnnouncementService.newAnnouncement(vm.announcement).then(function(announcement) {
                     _reset();
                     if($scope.addAnnouncementModal) {
                         $scope.addAnnouncementModal.hide();
                     }
                 }, function (error) {
                     self.title = 'new Announcement';
+                    console.log(error);
                     $ionicPopup.alert({
                         title: 'Ooops :(',
                         template: error.message || 'Please try again later...'
@@ -209,31 +355,74 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             };
 
 
+
+
+
+
         }]);
 })();
 (function(){
     'use strict';
 
     angular.module('ws.announcement')
-        .controller('AnnouncementDetailCtrl', ["$stateParams", "$ionicScrollDelegate", "$ionicActionSheet", "$ionicHistory", "GroupService", "AnnouncementService", "UserSession", function($stateParams, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory, GroupService, AnnouncementService, UserSession){
+        .controller('AnnouncementDetailCtrl', ["$rootScope", "$stateParams", "$ionicScrollDelegate", "$ionicActionSheet", "$ionicHistory", "GroupService", "AnnouncementService", "UserSession", "CommentService", "RELOAD", function(
+                $rootScope,
+                $stateParams, 
+                $ionicScrollDelegate, 
+                $ionicActionSheet, 
+                $ionicHistory, 
+                GroupService, 
+                AnnouncementService, 
+                UserSession,
+                CommentService,
+                RELOAD
+            ){
             var vm = this;
             this.announcement = {};
             this.group = {};
+            this.comments = [];
 
             this.newComment = '';
             var user = UserSession.getUser();
 
-            
-
-            function _reload() {
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.groupId).then(function(group){
                     vm.group = group;
                 });
-                AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
+            }
+
+            function _reloadAnnouncement() {
+                AnnouncementService.getAnnouncementById($stateParams.announcementId).then(function(announcement){
                     vm.announcement = announcement;
-                    $ionicScrollDelegate.scrollBottom();
+                    
                 });
             }
+
+            function _reloadComments() {
+                CommentService.getCommentsByAnnouncementId($stateParams.announcementId).then(function(comments){
+                    vm.comments = comments;
+                    $ionicScrollDelegate.scrollBottom();
+                });
+                
+            }
+
+            function _reload() {
+                _reloadGroup();
+                _reloadAnnouncement();
+                _reloadComments();
+            }
+
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
+            $rootScope.$on(RELOAD.ANNOUNCEMENT, _reloadAnnouncement);
+            $rootScope.$on(RELOAD.COMMENT, function(message, payload){
+                if(payload && payload.data && payload.data.announcement == vm.announcement.id) {
+                    CommentService.getCommentsByAnnouncementId($stateParams.announcementId).then(function(comments){
+                        vm.comments = comments;
+                        $ionicScrollDelegate.scrollBottom();
+                    });
+                }
+                
+            });
 
             this.edit = function(){
                 var editSheet = $ionicActionSheet.show({
@@ -260,12 +449,10 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             };
 
             this.sendNewComment = function() {
-                var comment = {user: user, content: this.newComment};
-                if(this.announcement.comments) {
-                    this.announcement.comments.push(comment);
-                    this.newComment = '';
-                }
-                $ionicScrollDelegate.scrollBottom();
+                var comment = {user: user, text: this.newComment, announcement: this.announcement};
+                CommentService.newComment(comment).then(function(newComment){
+                    vm.newComment = '';
+                });                
             };
 
             _reload();
@@ -274,115 +461,105 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 })();
 (function(){
     'use strict';
+    angular.module('ws.api')
+        .run(["$rootScope", "$sails", "RELOAD", "ENTITIES", function($rootScope, $sails, RELOAD, ENTITIES){
+            $sails.on('connect', function(){
+                angular.forEach(ENTITIES, function(entityName, entityId){
+                    if(RELOAD[entityId]) {
+                        $sails.on(entityName, function(message){
+                            $rootScope.$broadcast(RELOAD[entityId], message);
+                        });
+                    }
+                });
+            });
+        }]);
+})();
+(function(){
+    'use strict';
+    angular.module('ws.api')
+        .constant('RELOAD', {
+            ALL: 'reload_all',
+            GROUP: 'reload_group',
+            ANNOUNCEMENT: 'reload_announcement',
+            USER: 'reload_user',
+            COMMENT: 'reload_comment'
+        })
+        .constant('ENTITIES', {
+            GROUP: 'groups',
+            ANNOUNCEMENT: 'announcements',
+            USER: 'users',
+            COMMENT: 'comments'
+        });
+    ;
+})();
+(function(){
+    'use strict';
 
-    angular.module('ws.announcement')
-        .factory('AnnouncementService', ["$q", "$timeout", "UserSession", function($q, $timeout, UserSession){
-
-            var user = UserSession.user;
-
-            function getAnnouncementsByGroupId(groupId) {
-                //TODO: Implement Real Api
+    angular.module('ws.api')
+        .factory('$sailsPromised', ["$sails", "$q", function($sails, $q){
+            function promised$sailsConnection(method, route, data){
                 var deferred = $q.defer();
-                $timeout(function(){
-                    var announcements = [
-                        {
-                            id: 1,
-                            logo: 'ion-calendar',
-                            name: 'Announcement 1'
-                        },
-                        {
-                            id: 2,
-                            logo: 'ion-clock',
-                            name: 'Announcement 2'
-                        },
-                        {
-                            id: 3,
-                            logo: 'ion-coffee',
-                            name: 'Announcement 3'
-                        }
-                    ];
-                    deferred.resolve(announcements);
-                }, 1000);
+                if(!$sails._raw || !$sails._raw.connected){
+                    $sails.on('connect', function(){
+                        deferred.resolve($sails[method](route, data));
+                    });
+                } else {
+                    deferred.resolve($sails[method](route, data));
+                }
                 return deferred.promise;
             }
 
-            function getAnnouncementById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var announcement ={
-                        id: 1,
-                        groupId: 1,
-                        logo: 'ion-calendar',
-                        name: 'Announcement 1',
-                        description: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
-                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
-                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
-                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
-                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                        comments: [
-                            {
-                                content: 'Cool',
-                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
-                            },
-                            {
-                                content: 'Awesome!!!',
-                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
-                            }, 
-                            {
-                                content: 'Super',
-                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
-                            },                        
-                            {
-                                content: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys' + 
-                        'standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make' +
-                        'a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining' +
-                        'essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum' +
-                        'passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                                user: { id: 4, firstName: 'John', lastName: 'Doe'}
-                            },
-                            {
-                                content: 'Shiiit!',
-                                user: { id: 1, firstName: 'Thomas', lastName: 'Hampe'}
-                            },     
-                        ]            
-                    };
-
-                    deferred.resolve(announcement);    
-                }, 1000);
-                return deferred.promise;
+            // expose $sails functions
+            return {
+                get: function(route, data){
+                    return promised$sailsConnection('get', route, data);
+                },
+                post: function(route, data){
+                    return promised$sailsConnection('post', route, data);
+                },
+                put: function(route, data){
+                    return promised$sailsConnection('put', route, data);
+                },
+                delete: function(route, data){
+                    return promised$sailsConnection('delete', route, data);
+                }
             }
+        }])
+})();
+(function(){
+    'use strict';
 
-            function newAnnouncement(announcement){
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    deferred.resolve(announcement);
-                },1000);
-                return deferred.promise;
-            }
+    (function(){
+    'use strict';
 
-            function deleteAnnouncement(announcement){
-                var deferred = $q.defer();
-                $timeout(function(){
-                    deferred.resolve(announcement);
-                },1000);
-                return deferred.promise;   
-            }
+    angular.module('ws.comment')
+        .factory('CommentService', ["$rootScope", "$sailsPromised", "RELOAD", function($rootScope, $sailsPromised, RELOAD) {
+
+            function newComment(comment) {
+                return $sailsPromised.post('/comments', comment).then(function(newComment){
+                    $rootScope.$broadcast(RELOAD.COMMENT, {verb: 'created', data: newComment});
+                    return newComment;
+                });
+            };
+
+            function getCommentsByAnnouncementId(announcementId) {
+                return $sailsPromised.get('/comments', {announcement: announcementId});
+            };
 
             return {
-                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById,
-                newAnnouncement: newAnnouncement,
-                deleteAnnouncement: deleteAnnouncement
+                newComment: newComment,
+                getCommentsByAnnouncementId: getCommentsByAnnouncementId
             };
-        }]);
+
+        }])
+    ;
+})();
 })();
 (function(){
     'use strict';
 
     angular.module('ws.group')
-        .controller('AddGroupCtrl', ["$scope", "$ionicPopup", "GroupService", "UserSession", function($scope, $ionicPopup, GroupService, UserSession){
+        .controller('AddGroupCtrl', ["$q", "$scope", "$ionicPopup", "GroupService", "UserSession", "UserService", function($q, $scope, $ionicPopup, GroupService, UserSession, UserService){
             var vm = this;
             function _reset() {
                 vm.group = {
@@ -396,9 +573,20 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             this.add = function(){
                 this.title = 'Please wait...';
                 GroupService.newGroup(vm.group).then(function(group) {
-                    _reset();
+                    
                     if($scope.addGroupModal) {
-                        $scope.addGroupModal.hide();
+                        UserService
+                            .addUserToGroup(UserSession.getUser(), group.id)
+                            .then(function(){
+                                _reset();
+                                $scope.addGroupModal.hide();
+                            }, function(error){
+                                self.title = 'new Group';
+                                $ionicPopup.alert({
+                                    title: 'Ooops :(',
+                                    template: error.message || 'Please try again later...'
+                                });
+                            });                        
                     }
                 }, function (error) {
                     self.title = 'new Group';
@@ -416,13 +604,16 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             };
 
 
+
+
         }]);
 })();
 (function(){
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupDetailCtrl', ["$scope", "$stateParams", "$ionicActionSheet", "$ionicHistory", "$ionicPopup", "$ionicModal", "$ionicListDelegate", "GroupService", "AnnouncementService", "UserService", function(
+        .controller('GroupDetailCtrl', ["$rootScope", "$scope", "$stateParams", "$ionicActionSheet", "$ionicHistory", "$ionicPopup", "$ionicModal", "$ionicListDelegate", "GroupService", "AnnouncementService", "UserService", "UserSession", "RELOAD", function(
+                $rootScope,
                 $scope, 
                 $stateParams, 
                 $ionicActionSheet, 
@@ -432,10 +623,13 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 $ionicListDelegate, 
                 GroupService, 
                 AnnouncementService, 
-                UserService
+                UserService,
+                UserSession,
+                RELOAD
             ){
             var vm = this;
             this.group = {};
+            $scope.group = {};
 
             this.members = [];
 
@@ -469,27 +663,6 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 });
             };
 
-            this.edit = function(){
-                var editSheet = $ionicActionSheet.show({
-                    buttons: [
-                       { text: 'Add <strong>Announcement</strong> ' }
-                    ],
-                    destructiveText: 'Delete',
-                    titleText: 'Edit Group',
-                    cancelText: 'Cancel',
-                    destructiveButtonClicked: function(){
-                        editSheet();
-                        vm.delete();
-                    },
-                    buttonClicked: function(index) {
-                        if(index == 0) {
-                            vm.addAnnouncement();
-                        }
-                        return true;
-                    }
-                });
-            };
-
 
             $ionicModal.fromTemplateUrl('templates/announcement/add.html', {
                 scope: $scope,
@@ -502,6 +675,14 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 if($scope.addAnnouncementModal) {
                     $scope.addAnnouncementModal.show();
                 } 
+            }
+
+            this.canDelete = function() {
+                return vm.isOwner();
+            }
+
+            this.isOwner = function() {
+                return vm.group && vm.group.owner && UserSession.getUser().id === vm.group.owner.id;
             }
 
             this.deleteAnnouncement = function(announcement) {
@@ -530,20 +711,33 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 return true;
             }
             
-
-            function _reload() {
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
                     $scope.group = group;
                 });
+            }
+
+            function _reloadAnnouncements() {
                 AnnouncementService.getAnnouncementsByGroupId($stateParams.id).then(function(announcements){
                     vm.announcements = announcements;
                 });
+            }
+
+            function _reloadMembers() {
                 UserService.getUsersByGroupId($stateParams.id).then(function(members){
                     vm.members = members;
                 });
             }
-            _reload();
+
+            (function _reload() {
+                _reloadGroup();
+                _reloadAnnouncements();
+                _reloadMembers();                
+            })();
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
+            $rootScope.$on(RELOAD.ANNOUNCEMENT, _reloadAnnouncements);
+            $rootScope.$on(RELOAD.USER, _reloadMembers);
 
         }]);
 })();
@@ -551,7 +745,19 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupListCtrl', ["$scope", "$ionicModal", "$ionicActionSheet", "$ionicPopup", "$ionicListDelegate", "GroupService", "UserSession", function($scope, $ionicModal, $ionicActionSheet, $ionicPopup, $ionicListDelegate, GroupService, UserSession){
+        .controller('GroupListCtrl', ["$rootScope", "$scope", "$ionicModal", "$ionicActionSheet", "$ionicPopup", "$ionicListDelegate", "$sails", "GroupService", "UserService", "UserSession", "RELOAD", function(
+            $rootScope,
+            $scope, 
+            $ionicModal, 
+            $ionicActionSheet, 
+            $ionicPopup, 
+            $ionicListDelegate, 
+            $sails, 
+            GroupService,
+            UserService, 
+            UserSession,
+            RELOAD
+        ){
             var vm = this;
             this.groups = [];
             this.openAddGroupModal = function(){
@@ -594,6 +800,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                         GroupService.deleteGroup(group).then(function(){
                             deleteSheet();
                             $ionicListDelegate.closeOptionButtons();
+                            $rootScope.$broadcast(RELOAD.GROUP, {verb: 'deleted', data: group});
                         }, function(){
                             deleteSheet();
                             $ionicPopup.alert({
@@ -609,8 +816,9 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 GroupService.getGroups().then(function(groups){
                     vm.groups = groups;
                 });
-            }
+            };
             _reload();
+            $rootScope.$on(RELOAD.GROUP, _reload);
         }])
     ;
 })();
@@ -618,11 +826,23 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.group')
-        .controller('GroupMembersCtrl', ["$scope", "$stateParams", "$ionicActionSheet", "$ionicListDelegate", "$ionicModal", "$ionicPopup", "GroupService", "UserService", "UserSession", function($scope, $stateParams, $ionicActionSheet, $ionicListDelegate, $ionicModal, $ionicPopup, GroupService, UserService, UserSession){
+        .controller('GroupMembersCtrl', ["$rootScope", "$scope", "$stateParams", "$ionicActionSheet", "$ionicListDelegate", "$ionicModal", "$ionicPopup", "GroupService", "UserService", "UserSession", "RELOAD", function(
+                $rootScope, 
+                $scope, 
+                $stateParams, 
+                $ionicActionSheet, 
+                $ionicListDelegate, 
+                $ionicModal, 
+                $ionicPopup, 
+                GroupService, 
+                UserService, 
+                UserSession,
+                RELOAD
+            ){
             var vm = this;
             var currentUser = UserSession.getUser();
             this.group = {};
-            this.memebrs = [];
+            this.members = [];
 
             this.isLoggedIn = function(user){
                 return user.id === currentUser.id;
@@ -668,136 +888,54 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 } 
             }
 
-
-            function _reload() {
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
                 });
+            }
+
+            function _reloadMembers() {
                 UserService.getUsersByGroupId($stateParams.id).then(function(members){
                     vm.members = members;
                 });
             }
 
+            function _reload() {
+                _reloadGroup();
+                _reloadMembers();
+            }
             _reload();
+
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
+            $rootScope.$on(RELOAD.USER, _reloadMembers);
         }]);
 })();
 (function(){
     'use strict';
 
     angular.module('ws.group')
-        .factory('GroupService', ["$q", "$timeout", "UserSession", "UserService", "USER_ROLES", function($q, $timeout, UserSession, UserService, USER_ROLES){
-            var user = UserSession.user;
+        .factory('GroupService', ["$rootScope", "$sailsPromised", "RELOAD", function($rootScope, $sailsPromised,RELOAD) {
 
             function getGroups() {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var groups = [
-                        {
-                            id: 1,
-                            name: 'Group 1',
-                            owner: {
-                                id: 2,
-                                firstName: 'Admini', 
-                                lastName: 'Stratore', 
-                                username: 'admin',
-                                email: 'admin@hampe.co', 
-                                role: USER_ROLES.admin
-                            }
-                        },
-                        {
-                            id: 1,
-                            name: 'Group 2',
-                            owner: {
-                                id: 2,
-                                firstName: 'Admini', 
-                                lastName: 'Stratore', 
-                                username: 'admin',
-                                email: 'admin@hampe.co', 
-                                role: USER_ROLES.admin
-                            }
-                        }
-                    ];
-                    deferred.resolve(groups);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get("/groups");
             }
 
             function getGroupById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var group = {
-                        id: 1, 
-                        name: 'Group 1', 
-                        owner: {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        },
-                        announcements: [
-                            {
-                                id: 1,
-                                logo: 'ion-calendar',
-                                name: 'Announcement 1'
-                            },
-                            {
-                                id: 2,
-                                logo: 'ion-clock',
-                                name: 'Announcement 2'
-                            },
-                            {
-                                id: 3,
-                                logo: 'ion-coffee',
-                                name: 'Announcement 3'
-                            }
-                        ],
-                        members: [
-                            {name: 'John Doe'}, 
-                            {name: 'Jane Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}, 
-                            {name: 'John Doe'}
-                        ]
-                    };
-
-                    deferred.resolve(group);    
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get("/groups/"+id);
             }
 
             function newGroup(group) {
-                var deferred = $q.defer();
-                $timeout(function(){
-                    group.id = 3;
-
-                    //after creation add current user to group
-                    UserService.addUserToGroup(UserSession.getUser(), group.id).then(function(){
-                        getGroupById(group.id).then(function(group){
-                            deferred.resolve(group)
-                        });
-                    }, function(error){
-                        deferred.reject(error);
-                    });
-                    
-                }, 1000);
-
-                return deferred.promise;
+                return $sailsPromised.post('/groups', group).then(function(createdGroup){
+                    $rootScope.$broadcast(RELOAD.GROUP,{verb: 'created', data: createdGroup});
+                    return createdGroup;
+                });
             }
 
             function deleteGroup(group) {
-                var deferred = $q.defer();
-                $timeout(function(){
-                    deferred.resolve(group);
-                }, 1000);
-
-                return deferred.promise;
+                return $sailsPromised.delete('/groups/'+group.id).then(function(deletedGroup){
+                    $rootScope.$broadcast(RELOAD.GROUP,{verb: 'deleted', data: deletedGroup});
+                    return deletedGroup;
+                });
             }
 
             return {
@@ -895,7 +1033,6 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 user = UserSession.getUser()
                 settingsKey = 'settings_' + ((user.username) ? user.username : 'general');
                 settings = localStorageService.get(settingsKey) || null;
-                console.log(settings);
                 if(settings == undefined) {
                     var darkMode = SETTINGS.DARK_MODE;
                     var autoDark = SETTINGS.AUTO_DARK_MODE;
@@ -1039,7 +1176,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     angular.module('ws.user')
         .controller('LoginCtrl', ["$rootScope", "$scope", "$ionicPopup", "AUTH_EVENTS", "Auth", function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth){
             this.credentials = {
-                username: '',
+                email: '',
                 password: ''
             };
             this.title = 'Login';
@@ -1049,7 +1186,7 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                 Auth.login(this.credentials).then(function(user) {
                     self.title = 'Login';
                     self.credentials = {
-                        username: '',
+                        email: '',
                         password: ''
                     };
                     if($scope.loginModal) {
@@ -1075,9 +1212,10 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 (function(){
     'use strict';
     angular.module('ws.user')
-        .controller('RegisterCtrl', ["$rootScope", "$scope", "$ionicPopup", "AUTH_EVENTS", "Auth", function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth){
+        .controller('RegisterCtrl', ["$rootScope", "$scope", "$ionicPopup", "AUTH_EVENTS", "Auth", "USER_ROLES", function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth, USER_ROLES){
             this.credentials = {};
             this.title = '';
+            this.roles = USER_ROLES;
             var self = this;
             this.register = function(){
                 this.title = 'Please wait...';
@@ -1106,7 +1244,8 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     lastName: '',
                     email: '',
                     username: '',
-                    password: ''
+                    password: '',
+                    role: 'student'
                 };
                 self.title = 'Register';
             }
@@ -1165,41 +1304,23 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.user')
-        .factory('Auth', ["$rootScope", "$http", "$q", "$timeout", "$ionicHistory", "UserSession", "USER_ROLES", function ($rootScope, $http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
+        .factory('Auth', ["$rootScope", "$http", "$q", "$timeout", "$sailsPromised", "$ionicHistory", "UserSession", "UserService", "USER_ROLES", function ($rootScope, $http, $q, $timeout, $sailsPromised, $ionicHistory, UserSession, UserService, USER_ROLES) {
             var authService = {};
 
             authService.login = function (credentials) {
-                //TODO: Implement Login Api
+                //TODO: Implement Login Authenticate
                 var deferred = $q.defer();
-
-                $timeout(function(){
-                    var user;
-                    if(credentials.username === 'thomas') {
-                        user = {
-                            id: 1,
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        };
+                $sailsPromised.get('/users', {email: credentials.email}).then(function(users){
+                    if(users.length === 0) {
+                        deferred.reject({message: 'No User found...'});
+                    }else {
+                        var user = users[0];
                         UserSession.create(user);
                         deferred.resolve(user);
-                    } else if(credentials.username === 'admin') {
-                        user = {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        };
-                        UserSession.create(user);
-                        deferred.resolve(user);
-                    } else {
-                        deferred.reject({ message: 'Username or Password invalid' });
                     }
-                }, 300);
+                }, function(error){
+                    deferred.reject(error);
+                })
 
                 deferred.promise.then(function(user){
                     $rootScope.$broadcast('ws.user.login', user);
@@ -1210,8 +1331,12 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
 
             authService.register = function(credentials) {
                 var deferred = $q.defer();
-                //TODO: Login API
-                return this.login(credentials);
+                UserService.newUser(user).then(function(){
+                    authService.login({email: credentials.email, password: credentials.password}).then(function(user){
+                        deferred.resolve(user);
+                    }, deferred.reject);
+                }, deferred.reject);
+                return deferred.promise;                
             };
 
             authService.logout = function(){
@@ -1239,141 +1364,52 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
      angular.module('ws.group')
-        .factory('UserService', ["$q", "$timeout", "UserSession", "USER_ROLES", function($q, $timeout, UserSession, USER_ROLES){
-
-            var user = UserSession.user;
+        .factory('UserService', ["$rootScope", "$sailsPromised", "RELOAD", function($rootScope, $sailsPromised, RELOAD){
 
             function getUsers() {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var users = [
-                        {
-                            id: 1,
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        },
-                        {
-                            id: 3,
-                            firstName: 'Thomas 5', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 4,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 5,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 6,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 7,
-                            firstName: 'Thomas 4', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        }
-                    ];
-                    deferred.resolve(users);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get('/users');
             }
 
             function getUsersByGroupId(groupId) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var users = [
-                        {
-                            id: 1,
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        },
-                        {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        }
-                    ];
-                    deferred.resolve(users);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get('/groups/' + groupId + '/members')
+            }
+
+            function newUser(user) {
+                return $sailsPromised.post('/users', user).then(function(newUser){
+                    $rootScope.$broadcast(RELOAD.USER, {verb: 'created', data: newUser});
+                    return newUser;
+                });
+            }
+
+            function deleteUser(user) {
+                return $sailsPromised.delete('/users/' + user.id).then(function(deletedUser){
+                    $rootScope.$broadcast(RELOAD.USER, {verb: 'deleted', data: deletedUser});
+                    return deletedUser;
+                });
             }
 
             function getUserById(id) {
-                //TODO: Implement Real Api
-                var deferred = $q.defer();
-                $timeout(function(){
-                    var user = {
-                        id: 3,
-                        firstName: 'Thomas', 
-                        lastName: 'Hampe',     
-                        username: 'thomas',
-                        email: 'thomas@hampe.co', 
-                        role: USER_ROLES.student
-                    };
-
-                    deferred.resolve(user);    
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.get('/users/'+id);
             }
 
             function deleteUserFromGroup(user, groupId) {
-                var userId = (angular.isObject(user)) ? user.id : user;
-                var deferred = $q.defer();
-                $timeout(function(){
-                    return deferred.resolve(true);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.delete('/groups/'+ groupId + '/members/' + user.id).then(function(deletedUser){
+                    $rootScope.$broadcast(RELOAD.USER);
+                    return deletedUser;
+                });;
             }
 
             function addUserToGroup(user, groupId) {
-                var deferred = $q.defer();
-                $timeout(function(){
-                    return deferred.resolve(true);
-                }, 1000);
-                return deferred.promise;
+                return $sailsPromised.post('/groups/'+ groupId + '/members/' + user.id).then(function(newUser){
+                    $rootScope.$broadcast(RELOAD.USER, {verb: 'created', data: newUser});
+                    return newUser;
+                });
             }
 
             return {
                 getUsers: getUsers,
+                newUser: newUser,
+                deleteUser: deleteUser,
                 getUsersByGroupId: getUsersByGroupId,
                 getUserById: getUserById,
                 deleteUserFromGroup: deleteUserFromGroup,
@@ -1422,7 +1458,16 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
     'use strict';
 
     angular.module('ws.group')
-        .controller('AddMembersCtrl', ["$scope", "$q", "$stateParams", "$ionicPopup", "UserService", "GroupService", function($scope, $q, $stateParams, $ionicPopup, UserService, GroupService){
+        .controller('AddMembersCtrl', ["$rootScope", "$scope", "$q", "$stateParams", "$ionicPopup", "UserService", "GroupService", "RELOAD", function(
+                $rootScope, 
+                $scope, 
+                $q, 
+                $stateParams, 
+                $ionicPopup, 
+                UserService, 
+                GroupService,
+                RELOAD
+            ){
             var vm = this;
             vm.group = {};
             vm.members = [];
@@ -1431,11 +1476,15 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
             function _reset() {
                 vm.title = 'add Members';
             }
-            function _reload() {
+
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
                 });
-                $q.all([UserService.getUsers(), UserService.getUsersByGroupId()]).then(function(results){
+            }
+
+            function _reloadMembers() {
+                $q.all([UserService.getUsers(), UserService.getUsersByGroupId($stateParams.id)]).then(function(results){
                     vm.users = results[0];
                     vm.members = results[1];
                     var isInGroup = {};
@@ -1444,15 +1493,22 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     }
 
                     angular.forEach(vm.users, function(user, key){
-                        vm.users[key].isInGroup = !!isInGroup[user.id];
+                        vm.users[key].isInGroup = !!isInGroup[user.id] || !!vm.users[key].isInGroup;
                         vm.users[key].wasInGroup = !!isInGroup[user.id];
-
                     })
                 });
             }
 
+            function _reload() {
+                _reloadGroup();
+                _reloadMembers();
+            }
+
             _reset();
             _reload();
+
+            $rootScope.$broadcast(RELOAD.USER, _reloadMembers);
+            $rootScope.$broadcast(RELOAD.GROUP, _reloadGroup);
 
             this.add = function(){
                 this.title = 'Please wait...';
@@ -1484,9 +1540,6 @@ angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravat
                     $scope.addMembersModal.hide();
                 }
             };
-
-            
-
 
         }]);
 })();

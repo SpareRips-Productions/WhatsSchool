@@ -3,6 +3,7 @@
 
     angular.module('ws.group')
         .controller('GroupDetailCtrl', function(
+                $rootScope,
                 $scope, 
                 $stateParams, 
                 $ionicActionSheet, 
@@ -12,10 +13,13 @@
                 $ionicListDelegate, 
                 GroupService, 
                 AnnouncementService, 
-                UserService
+                UserService,
+                UserSession,
+                RELOAD
             ){
             var vm = this;
             this.group = {};
+            $scope.group = {};
 
             this.members = [];
 
@@ -49,27 +53,6 @@
                 });
             };
 
-            this.edit = function(){
-                var editSheet = $ionicActionSheet.show({
-                    buttons: [
-                       { text: 'Add <strong>Announcement</strong> ' }
-                    ],
-                    destructiveText: 'Delete',
-                    titleText: 'Edit Group',
-                    cancelText: 'Cancel',
-                    destructiveButtonClicked: function(){
-                        editSheet();
-                        vm.delete();
-                    },
-                    buttonClicked: function(index) {
-                        if(index == 0) {
-                            vm.addAnnouncement();
-                        }
-                        return true;
-                    }
-                });
-            };
-
 
             $ionicModal.fromTemplateUrl('templates/announcement/add.html', {
                 scope: $scope,
@@ -82,6 +65,14 @@
                 if($scope.addAnnouncementModal) {
                     $scope.addAnnouncementModal.show();
                 } 
+            }
+
+            this.canDelete = function() {
+                return vm.isOwner();
+            }
+
+            this.isOwner = function() {
+                return vm.group && vm.group.owner && UserSession.getUser().id === vm.group.owner.id;
             }
 
             this.deleteAnnouncement = function(announcement) {
@@ -110,20 +101,33 @@
                 return true;
             }
             
-
-            function _reload() {
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
                     $scope.group = group;
                 });
+            }
+
+            function _reloadAnnouncements() {
                 AnnouncementService.getAnnouncementsByGroupId($stateParams.id).then(function(announcements){
                     vm.announcements = announcements;
                 });
+            }
+
+            function _reloadMembers() {
                 UserService.getUsersByGroupId($stateParams.id).then(function(members){
                     vm.members = members;
                 });
             }
-            _reload();
+
+            (function _reload() {
+                _reloadGroup();
+                _reloadAnnouncements();
+                _reloadMembers();                
+            })();
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
+            $rootScope.$on(RELOAD.ANNOUNCEMENT, _reloadAnnouncements);
+            $rootScope.$on(RELOAD.USER, _reloadMembers);
 
         });
 })();

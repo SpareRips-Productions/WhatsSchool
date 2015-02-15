@@ -1,6 +1,6 @@
 <ion-view title="{{ ctrl.group.name }}">
   <ion-nav-buttons side="right">
-    <button ng-show="Acl.isTeacher()" class="button button-clear button-header-done" ng-click="ctrl.edit()">Edit</button>
+    <button ng-show="Acl.isTeacher() && ctrl.isOwner()" class="button button-icon icon ion-ios7-plus-empty" ng-click="ctrl.addAnnouncement()"></button>
   </ion-nav-buttons>
   <ion-content>
   	<ion-list>
@@ -30,5 +30,8 @@
           </ion-option-button>
   		</ion-item>
   	</ion-list>
+    <button ng-show="Acl.isTeacher() && ctrl.isOwner()" class="button button-full button-assertive" ng-click="ctrl.delete()">
+        Delete
+    </button>
   </ion-content>
 </ion-view>

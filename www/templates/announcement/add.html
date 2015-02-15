@@ -14,14 +14,14 @@
         <form class="list" ng-submit="AddCtrl.add()">
             <div class="item">
                 <p>Group</p>
-                {{group.name }}
+                {{AddCtrl.announcement.group.name }}
                 
             </div>
             <label class="item item-input">
                 <input type="text" placeholder="Name" ng-model="AddCtrl.announcement.name">
             </label>
             <label class="item item-input">
-                <textarea placeholder="Description"></textarea>
+                <textarea placeholder="Description" ng-model="AddCtrl.announcement.description"></textarea>
             </label>
             <ion-item class="item-divider">
                 Symbol

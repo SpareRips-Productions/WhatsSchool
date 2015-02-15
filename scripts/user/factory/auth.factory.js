@@ -2,41 +2,23 @@
     'use strict';
 
     angular.module('ws.user')
-        .factory('Auth', function ($rootScope, $http, $q, $timeout, $ionicHistory, UserSession, USER_ROLES) {
+        .factory('Auth', function ($rootScope, $http, $q, $timeout, $sailsPromised, $ionicHistory, UserSession, UserService, USER_ROLES) {
             var authService = {};
 
             authService.login = function (credentials) {
-                //TODO: Implement Login Api
+                //TODO: Implement Login Authenticate
                 var deferred = $q.defer();
-
-                $timeout(function(){
-                    var user;
-                    if(credentials.username === 'thomas') {
-                        user = {
-                            id: 1,
-                            firstName: 'Thomas', 
-                            lastName: 'Hampe',     
-                            username: 'thomas',
-                            email: 'thomas@hampe.co', 
-                            role: USER_ROLES.student
-                        };
+                $sailsPromised.get('/users', {email: credentials.email}).then(function(users){
+                    if(users.length === 0) {
+                        deferred.reject({message: 'No User found...'});
+                    }else {
+                        var user = users[0];
                         UserSession.create(user);
                         deferred.resolve(user);
-                    } else if(credentials.username === 'admin') {
-                        user = {
-                            id: 2,
-                            firstName: 'Admini', 
-                            lastName: 'Stratore', 
-                            username: 'admin',
-                            email: 'admin@hampe.co', 
-                            role: USER_ROLES.admin
-                        };
-                        UserSession.create(user);
-                        deferred.resolve(user);
-                    } else {
-                        deferred.reject({ message: 'Username or Password invalid' });
                     }
-                }, 300);
+                }, function(error){
+                    deferred.reject(error);
+                })
 
                 deferred.promise.then(function(user){
                     $rootScope.$broadcast('ws.user.login', user);
@@ -47,8 +29,12 @@
 
             authService.register = function(credentials) {
                 var deferred = $q.defer();
-                //TODO: Login API
-                return this.login(credentials);
+                UserService.newUser(user).then(function(){
+                    authService.login({email: credentials.email, password: credentials.password}).then(function(user){
+                        deferred.resolve(user);
+                    }, deferred.reject);
+                }, deferred.reject);
+                return deferred.promise;                
             };
 
             authService.logout = function(){

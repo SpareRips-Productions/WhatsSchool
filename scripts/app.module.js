@@ -2,7 +2,19 @@
 
 'use strict';
 
-angular.module('ws.app', ['ionic', 'ngCordova', 'LocalStorageModule', 'ui.gravatar', 'ws.group', 'ws.announcement', 'ws.user', 'ws.settings'])
+angular.module('ws.app', [
+      'ionic', 
+      'ngCordova', 
+      'LocalStorageModule', 
+      'ngSails',
+      'ui.gravatar', 
+      'ws.api',
+      'ws.group', 
+      'ws.announcement', 
+      'ws.user', 
+      'ws.settings',
+      'ws.comment'
+    ])
     .config(function($ionicConfigProvider) {
       $ionicConfigProvider.platform.android.backButton.icon('ion-ios7-arrow-back');
     })

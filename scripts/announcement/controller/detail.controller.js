@@ -2,25 +2,64 @@
     'use strict';
 
     angular.module('ws.announcement')
-        .controller('AnnouncementDetailCtrl', function($stateParams, $ionicScrollDelegate, $ionicActionSheet, $ionicHistory, GroupService, AnnouncementService, UserSession){
+        .controller('AnnouncementDetailCtrl', function(
+                $rootScope,
+                $stateParams, 
+                $ionicScrollDelegate, 
+                $ionicActionSheet, 
+                $ionicHistory, 
+                GroupService, 
+                AnnouncementService, 
+                UserSession,
+                CommentService,
+                RELOAD
+            ){
             var vm = this;
             this.announcement = {};
             this.group = {};
+            this.comments = [];
 
             this.newComment = '';
             var user = UserSession.getUser();
 
-            
-
-            function _reload() {
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.groupId).then(function(group){
                     vm.group = group;
                 });
-                AnnouncementService.getAnnouncementById($stateParams.id).then(function(announcement){
+            }
+
+            function _reloadAnnouncement() {
+                AnnouncementService.getAnnouncementById($stateParams.announcementId).then(function(announcement){
                     vm.announcement = announcement;
-                    $ionicScrollDelegate.scrollBottom();
+                    
                 });
             }
+
+            function _reloadComments() {
+                CommentService.getCommentsByAnnouncementId($stateParams.announcementId).then(function(comments){
+                    vm.comments = comments;
+                    $ionicScrollDelegate.scrollBottom();
+                });
+                
+            }
+
+            function _reload() {
+                _reloadGroup();
+                _reloadAnnouncement();
+                _reloadComments();
+            }
+
+            $rootScope.$on(RELOAD.GROUP, _reloadGroup);
+            $rootScope.$on(RELOAD.ANNOUNCEMENT, _reloadAnnouncement);
+            $rootScope.$on(RELOAD.COMMENT, function(message, payload){
+                if(payload && payload.data && payload.data.announcement == vm.announcement.id) {
+                    CommentService.getCommentsByAnnouncementId($stateParams.announcementId).then(function(comments){
+                        vm.comments = comments;
+                        $ionicScrollDelegate.scrollBottom();
+                    });
+                }
+                
+            });
 
             this.edit = function(){
                 var editSheet = $ionicActionSheet.show({
@@ -47,12 +86,10 @@
             };
 
             this.sendNewComment = function() {
-                var comment = {user: user, content: this.newComment};
-                if(this.announcement.comments) {
-                    this.announcement.comments.push(comment);
-                    this.newComment = '';
-                }
-                $ionicScrollDelegate.scrollBottom();
+                var comment = {user: user, text: this.newComment, announcement: this.announcement};
+                CommentService.newComment(comment).then(function(newComment){
+                    vm.newComment = '';
+                });                
             };
 
             _reload();

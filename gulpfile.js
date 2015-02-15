@@ -47,7 +47,7 @@ gulp.task('lint:sass', function(){
 gulp.task('lint', ['lint:js', 'lint:sass']);
 
 gulp.task('js', function() {
-  gulp.src(['./scripts/**/*.module.js', paths.scripts])
+  gulp.src(['./scripts/_lib/**.*.js', './scripts/**/*.module.js', paths.scripts])
         .pipe(ngAnnotate())
         .pipe(sourcemaps.init())
         .pipe(concat('app.js'))

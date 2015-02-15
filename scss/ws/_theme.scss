@@ -172,6 +172,19 @@ $lobster:  'lobster_regular', 'Helvetica Neue', Roboto, sans-serif;
         background-color: darken($dark, 10%);
         //background-color: $dark;
     }
+    textarea {
+        background-color: $dark;
+    }
+    .announcement-add .header-icon {
+        border-color: #fff;
+    }
 
+    .popup {
+        background: rgba(65,65,65,0.9);
+        color: $lightInDarkMode;
+        .popup-head {
+            border-color: $lightInDarkMode;
+        }
+    }
 }
 

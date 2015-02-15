@@ -13,7 +13,8 @@
     		</label>
   		</ion-item>
   		<ion-item class="item-icon-right" ng-repeat="group in ctrl.groups | filter: ctrl.groupSearch" href="#/tabs/groups/{{group.id}}">
-  			<h2>{{ group.name }}</h2>
+  			<strong>{{ group.name }}</strong>
+        
   			<p>{{group.owner.firstName}} {{group.owner.lastName}}</p>
         <i class="icon dark-gray ion-ios7-arrow-forward"></i>
   		  <ion-option-button class="button-assertive" ng-click="ctrl.delete(group)" ng-show="Acl.isTeacher() && ctrl.canDelete(group)">

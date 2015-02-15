@@ -1,4 +1,4 @@
 (function(){
     'use strict';
-    angular.module('ws.user', ['ionic', 'LocalStorageModule']);
+    angular.module('ws.user', ['ionic', 'LocalStorageModule', 'ws.api']);
 })();

@@ -1,9 +1,10 @@
 (function(){
     'use strict';
     angular.module('ws.user')
-        .controller('RegisterCtrl', function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth){
+        .controller('RegisterCtrl', function LoginCtrl($rootScope, $scope, $ionicPopup, AUTH_EVENTS, Auth, USER_ROLES){
             this.credentials = {};
             this.title = '';
+            this.roles = USER_ROLES;
             var self = this;
             this.register = function(){
                 this.title = 'Please wait...';
@@ -32,7 +33,8 @@
                     lastName: '',
                     email: '',
                     username: '',
-                    password: ''
+                    password: '',
+                    role: 'student'
                 };
                 self.title = 'Register';
             }

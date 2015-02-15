@@ -9,7 +9,7 @@
                     abstract: true,
                     templateUrl: 'templates/tabs.html',
                     data: {
-                        authorizedRoles: [USER_ROLES.student, USER_ROLES.admin]
+                        authorizedRoles: [USER_ROLES.student, USER_ROLES.teacher, USER_ROLES.admin]
                     }
                 })
                 .state('tabs.groups', {
@@ -47,7 +47,7 @@
                     views: {
                         'tab-groups': {
                             templateUrl: 'templates/group/members.html',
-                            controller: 'GroupMembersCtrl as ctrl'
+                            controller: 'GroupMembersCtrl as MembersCtrl'
                         }
                     }
                 })

@@ -2,7 +2,16 @@
     'use strict';
 
     angular.module('ws.group')
-        .controller('AddMembersCtrl', function($scope, $q, $stateParams, $ionicPopup, UserService, GroupService){
+        .controller('AddMembersCtrl', function(
+                $rootScope, 
+                $scope, 
+                $q, 
+                $stateParams, 
+                $ionicPopup, 
+                UserService, 
+                GroupService,
+                RELOAD
+            ){
             var vm = this;
             vm.group = {};
             vm.members = [];
@@ -11,11 +20,15 @@
             function _reset() {
                 vm.title = 'add Members';
             }
-            function _reload() {
+
+            function _reloadGroup() {
                 GroupService.getGroupById($stateParams.id).then(function(group){
                     vm.group = group;
                 });
-                $q.all([UserService.getUsers(), UserService.getUsersByGroupId()]).then(function(results){
+            }
+
+            function _reloadMembers() {
+                $q.all([UserService.getUsers(), UserService.getUsersByGroupId($stateParams.id)]).then(function(results){
                     vm.users = results[0];
                     vm.members = results[1];
                     var isInGroup = {};
@@ -24,15 +37,22 @@
                     }
 
                     angular.forEach(vm.users, function(user, key){
-                        vm.users[key].isInGroup = !!isInGroup[user.id];
+                        vm.users[key].isInGroup = !!isInGroup[user.id] || !!vm.users[key].isInGroup;
                         vm.users[key].wasInGroup = !!isInGroup[user.id];
-
                     })
                 });
             }
 
+            function _reload() {
+                _reloadGroup();
+                _reloadMembers();
+            }
+
             _reset();
             _reload();
+
+            $rootScope.$broadcast(RELOAD.USER, _reloadMembers);
+            $rootScope.$broadcast(RELOAD.GROUP, _reloadGroup);
 
             this.add = function(){
                 this.title = 'Please wait...';
@@ -64,9 +84,6 @@
                     $scope.addMembersModal.hide();
                 }
             };
-
-            
-
 
         });
 })();

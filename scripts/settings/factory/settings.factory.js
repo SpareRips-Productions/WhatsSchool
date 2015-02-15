@@ -12,7 +12,6 @@
                 user = UserSession.getUser()
                 settingsKey = 'settings_' + ((user.username) ? user.username : 'general');
                 settings = localStorageService.get(settingsKey) || null;
-                console.log(settings);
                 if(settings == undefined) {
                     var darkMode = SETTINGS.DARK_MODE;
                     var autoDark = SETTINGS.AUTO_DARK_MODE;
