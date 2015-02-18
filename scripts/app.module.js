@@ -15,6 +15,9 @@ angular.module('ws.app', [
       'ws.settings',
       'ws.comment'
     ])
+    .config(['$sailsProvider', function ($sailsProvider) {
+            $sailsProvider.url = 'http://whatsschool.herokuapp.com:80';
+    }])
     .config(function($ionicConfigProvider) {
       $ionicConfigProvider.platform.android.backButton.icon('ion-ios7-arrow-back');
     })

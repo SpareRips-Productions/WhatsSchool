@@ -15,6 +15,9 @@ angular.module('ws.app', [
       'ws.settings',
       'ws.comment'
     ])
+    .config(['$sailsProvider', function ($sailsProvider) {
+            $sailsProvider.url = 'http://whatsschool.herokuapp.com:80';
+    }])
     .config(["$ionicConfigProvider", function($ionicConfigProvider) {
       $ionicConfigProvider.platform.android.backButton.icon('ion-ios7-arrow-back');
     }])
@@ -154,8 +157,6 @@ angular.module('ws.app', [
 
         // Force protocol
         gravatarServiceProvider.protocol = 'https';
-    }]).config(['$sailsProvider', function ($sailsProvider) {
-        $sailsProvider.url = 'http://localhost:1337';
     }]);
 ;
 })();
@@ -473,24 +474,6 @@ angular.module('ngSails').provider('$sails', function () {
                 });
             });
         }]);
-})();
-(function(){
-    'use strict';
-    angular.module('ws.api')
-        .constant('RELOAD', {
-            ALL: 'reload_all',
-            GROUP: 'reload_group',
-            ANNOUNCEMENT: 'reload_announcement',
-            USER: 'reload_user',
-            COMMENT: 'reload_comment'
-        })
-        .constant('ENTITIES', {
-            GROUP: 'groups',
-            ANNOUNCEMENT: 'announcements',
-            USER: 'users',
-            COMMENT: 'comments'
-        });
-    ;
 })();
 (function(){
     'use strict';
@@ -949,6 +932,24 @@ angular.module('ngSails').provider('$sails', function () {
     ;
 })();
 (function(){
+    'use strict';
+    angular.module('ws.api')
+        .constant('RELOAD', {
+            ALL: 'reload_all',
+            GROUP: 'reload_group',
+            ANNOUNCEMENT: 'reload_announcement',
+            USER: 'reload_user',
+            COMMENT: 'reload_comment'
+        })
+        .constant('ENTITIES', {
+            GROUP: 'groups',
+            ANNOUNCEMENT: 'announcements',
+            USER: 'users',
+            COMMENT: 'comments'
+        });
+    ;
+})();
+(function(){
     angular.module('ws.settings')
         .constant('SETTINGS', {
             DARK_MODE: 'darkMode',
@@ -1331,7 +1332,7 @@ angular.module('ngSails').provider('$sails', function () {
 
             authService.register = function(credentials) {
                 var deferred = $q.defer();
-                UserService.newUser(user).then(function(){
+                UserService.newUser(credentials).then(function(){
                     authService.login({email: credentials.email, password: credentials.password}).then(function(user){
                         deferred.resolve(user);
                     }, deferred.reject);

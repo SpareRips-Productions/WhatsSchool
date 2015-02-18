@@ -12,8 +12,6 @@
 
         // Force protocol
         gravatarServiceProvider.protocol = 'https';
-    }).config(['$sailsProvider', function ($sailsProvider) {
-        $sailsProvider.url = 'http://localhost:1337';
-    }]);
+    });
 ;
 })();

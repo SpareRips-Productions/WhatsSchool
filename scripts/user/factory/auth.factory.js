@@ -29,7 +29,7 @@
 
             authService.register = function(credentials) {
                 var deferred = $q.defer();
-                UserService.newUser(user).then(function(){
+                UserService.newUser(credentials).then(function(){
                     authService.login({email: credentials.email, password: credentials.password}).then(function(user){
                         deferred.resolve(user);
                     }, deferred.reject);
