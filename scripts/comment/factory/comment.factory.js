@@ -15,7 +15,7 @@
             };
 
             function getCommentsByAnnouncementId(announcementId) {
-                return $sailsPromised.get('/comments', {announcement: announcementId});
+                return $sailsPromised.get('/comments', {announcement: announcementId, sort: 'createdAt'});
             };
 
             return {

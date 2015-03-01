@@ -273,42 +273,6 @@ angular.module('ngSails').provider('$sails', function () {
     'use strict';
 
     angular.module('ws.announcement')
-        .factory('AnnouncementService', ["$rootScope", "$sailsPromised", "RELOAD", function($rootScope, $sailsPromised, RELOAD){
-
-            function getAnnouncementsByGroupId(groupId) {
-                return $sailsPromised.get('/groups/'+groupId+'/announcements');   
-            }
-
-            function getAnnouncementById(id) {
-                return $sailsPromised.get('/announcements/'+id);    
-            }
-
-            function newAnnouncement(announcement){
-                return $sailsPromised.post('/announcements', announcement).then(function(newAnnouncement){
-                    $rootScope.$broadcast(RELOAD.ANNOUNCEMENT, {verb: 'created', data: newAnnouncement});
-                    return newAnnouncement;
-                });
-            }
-
-            function deleteAnnouncement(announcement){
-                return $sailsPromised.delete('/announcements/' + announcement.id).then(function(deletedAnnouncement){
-                    $rootScope.$broadcast(RELOAD.ANNOUNCEMENT, {verb: 'deleted', data: deletedAnnouncement});
-                    return deletedAnnouncement;
-                });  
-            }
-
-            return {
-                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
-                getAnnouncementById: getAnnouncementById,
-                newAnnouncement: newAnnouncement,
-                deleteAnnouncement: deleteAnnouncement
-            };
-        }]);
-})();
-(function(){
-    'use strict';
-
-    angular.module('ws.announcement')
         .controller('AddAnnouncementCtrl', ["$rootScope", "$scope", "$ionicPopup", "$stateParams", "ANNOUNCEMENT_TYPES", "AnnouncementService", "GroupService", "RELOAD", function($rootScope, $scope, $ionicPopup, $stateParams, ANNOUNCEMENT_TYPES, AnnouncementService, GroupService, RELOAD){
             var vm = this;
             function _reset() {
@@ -462,6 +426,42 @@ angular.module('ngSails').provider('$sails', function () {
 })();
 (function(){
     'use strict';
+
+    angular.module('ws.announcement')
+        .factory('AnnouncementService', ["$rootScope", "$sailsPromised", "RELOAD", function($rootScope, $sailsPromised, RELOAD){
+
+            function getAnnouncementsByGroupId(groupId) {
+                return $sailsPromised.get('/groups/'+groupId+'/announcements');   
+            }
+
+            function getAnnouncementById(id) {
+                return $sailsPromised.get('/announcements/'+id);    
+            }
+
+            function newAnnouncement(announcement){
+                return $sailsPromised.post('/announcements', announcement).then(function(newAnnouncement){
+                    $rootScope.$broadcast(RELOAD.ANNOUNCEMENT, {verb: 'created', data: newAnnouncement});
+                    return newAnnouncement;
+                });
+            }
+
+            function deleteAnnouncement(announcement){
+                return $sailsPromised.delete('/announcements/' + announcement.id).then(function(deletedAnnouncement){
+                    $rootScope.$broadcast(RELOAD.ANNOUNCEMENT, {verb: 'deleted', data: deletedAnnouncement});
+                    return deletedAnnouncement;
+                });  
+            }
+
+            return {
+                getAnnouncementsByGroupId: getAnnouncementsByGroupId,
+                getAnnouncementById: getAnnouncementById,
+                newAnnouncement: newAnnouncement,
+                deleteAnnouncement: deleteAnnouncement
+            };
+        }]);
+})();
+(function(){
+    'use strict';
     angular.module('ws.api')
         .run(["$rootScope", "$sails", "RELOAD", "ENTITIES", function($rootScope, $sails, RELOAD, ENTITIES){
             $sails.on('connect', function(){
@@ -474,6 +474,24 @@ angular.module('ngSails').provider('$sails', function () {
                 });
             });
         }]);
+})();
+(function(){
+    'use strict';
+    angular.module('ws.api')
+        .constant('RELOAD', {
+            ALL: 'reload_all',
+            GROUP: 'reload_group',
+            ANNOUNCEMENT: 'reload_announcement',
+            USER: 'reload_user',
+            COMMENT: 'reload_comment'
+        })
+        .constant('ENTITIES', {
+            GROUP: 'groups',
+            ANNOUNCEMENT: 'announcements',
+            USER: 'users',
+            COMMENT: 'comments'
+        });
+    ;
 })();
 (function(){
     'use strict';
@@ -526,7 +544,7 @@ angular.module('ngSails').provider('$sails', function () {
             };
 
             function getCommentsByAnnouncementId(announcementId) {
-                return $sailsPromised.get('/comments', {announcement: announcementId});
+                return $sailsPromised.get('/comments', {announcement: announcementId, sort: 'createdAt'});
             };
 
             return {
@@ -929,24 +947,6 @@ angular.module('ngSails').provider('$sails', function () {
             };
 
         }])
-    ;
-})();
-(function(){
-    'use strict';
-    angular.module('ws.api')
-        .constant('RELOAD', {
-            ALL: 'reload_all',
-            GROUP: 'reload_group',
-            ANNOUNCEMENT: 'reload_announcement',
-            USER: 'reload_user',
-            COMMENT: 'reload_comment'
-        })
-        .constant('ENTITIES', {
-            GROUP: 'groups',
-            ANNOUNCEMENT: 'announcements',
-            USER: 'users',
-            COMMENT: 'comments'
-        });
     ;
 })();
 (function(){
